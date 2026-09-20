@@ -59,7 +59,7 @@ node scripts/snapshot.js --seed portrait-1 --steps 900 --out portrait.png   # re
 ```
 index.html          the page
 web/                page-only code: app, charts, styles
-src/                the engine: worlds, rng, stats (runs in Node and browser)
+src/                the engine: worlds, rng, stats, fixed-timestep clock (Node and browser)
 test/               node --test suites
 experiments/        seeded experiments and their JSON results
 data/cycles.json    the loop's log, rendered as the timeline

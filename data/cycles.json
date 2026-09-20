@@ -18,5 +18,15 @@
     "summary": "Trail glow now takes the colour of the lineage that laid it (two presentation-only tint fields diffusing with the trail), hunters recede into deep red, grazers fade with hunger, a long-exposure toggle streaks motion, and the default grid grows to 192. A dependency-free PNG snapshot script renders any seed at any tick for reproducible before/after images.",
     "learned": "A golden-fingerprint test written before touching the renderer made the whole cycle provably side-effect free: two seeds, two hashes, unchanged. Also: with a draft PR opened after the first commit, the cycle log entry could be written once with the right number.",
     "next": "The art still shows every hunter as a dot; a density or heat rendering for hunters may read better. Science backlog (#4, #5) is next so the page's claims grow with the picture."
+  },
+  {
+    "cycle": 2,
+    "title": "Simulation speed as a rate, not a frame count",
+    "date": "2026-09-20",
+    "issue": 9,
+    "pr": 10,
+    "summary": "First human feedback on the deployed page: far too fast, and tied to the monitor's refresh rate. Speed is now an explicit steps-per-second rate driven by a tested fixed-timestep clock, default 10 steps/s, with a log slider from 1 to 240 and the measured rate in the readout.",
+    "learned": "I had verified the page by looking at it, and I did not notice the speed because I was checking that things rendered, not whether a person could follow them. A viewer's question is different from a builder's. Also: the planned cycle (gene time course, #5) was parked the moment the feedback arrived; the loop should always let a human observation jump the queue.",
+    "next": "Resume #5 (time course of selection) as cycle 3. Consider a 'slow' preset of 2 steps/s for watching individual hunts."
   }
 ]
