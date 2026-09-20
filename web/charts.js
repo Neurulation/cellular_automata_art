@@ -211,3 +211,56 @@ export function legend(items) {
   }
   return div;
 }
+
+/**
+ * Heatmap over a small parameter grid.
+ * rows: [{ label, key }], cols: [{ label, key }], cell(rowKey, colKey) -> { value, text, muted, tip }
+ * A sequential ramp in one hue: value in [0,1] maps light -> dark. Muted
+ * cells (e.g. failed eligibility) are drawn grey with a hatch.
+ */
+export function heatmap(rows, cols, cell, opts = {}) {
+  const cw = opts.cellWidth ?? 84;
+  const ch = opts.cellHeight ?? 48;
+  const m = { top: opts.title ? 44 : 26, right: 8, bottom: 30, left: 92 };
+  const W = m.left + cols.length * cw + m.right;
+  const H = m.top + rows.length * ch + m.bottom;
+  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'chart', role: 'img', 'aria-label': opts.title ?? 'heatmap' });
+  if (opts.title) svg.append(el('text', { x: m.left, y: 16, class: 'title' }, [opts.title]));
+  const defs = el('defs');
+  const pat = el('pattern', { id: 'hatch', width: 6, height: 6, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' });
+  pat.append(el('rect', { width: 6, height: 6, fill: 'var(--bg-3)' }), el('line', { x1: 0, y1: 0, x2: 0, y2: 6, stroke: 'var(--line)', 'stroke-width': 2 }));
+  defs.append(pat);
+  svg.append(defs);
+  cols.forEach((c, j) => svg.append(el('text', { x: m.left + j * cw + cw / 2, y: m.top - 8, 'text-anchor': 'middle' }, [c.label])));
+  if (opts.xLabel) svg.append(el('text', { x: m.left + (cols.length * cw) / 2, y: H - 6, 'text-anchor': 'middle' }, [opts.xLabel]));
+  if (opts.yLabel) svg.append(el('text', { x: 8, y: m.top - 8, 'text-anchor': 'start' }, [opts.yLabel]));
+  rows.forEach((r, i) => {
+    svg.append(el('text', { x: m.left - 8, y: m.top + i * ch + ch / 2 + 4, 'text-anchor': 'end' }, [r.label]));
+    cols.forEach((c, j) => {
+      const d = cell(r.key, c.key) ?? {};
+      const g = el('g');
+      const x = m.left + j * cw + 1;
+      const y = m.top + i * ch + 1;
+      const v = Number.isFinite(d.value) ? Math.max(0, Math.min(1, d.value)) : null;
+      const fill = d.muted || v === null ? 'url(#hatch)' : seqColor(v, opts.hue ?? 210);
+      g.append(el('rect', { x, y, width: cw - 2, height: ch - 2, rx: 4, fill }));
+      if (d.text) {
+        const dark = !d.muted && v !== null && v > 0.55;
+        g.append(el('text', { x: x + (cw - 2) / 2, y: y + (ch - 2) / 2 + 4, 'text-anchor': 'middle', fill: dark ? '#f4f3ee' : d.muted ? 'var(--text-3)' : '#0b0d12', 'font-weight': 600 }, [d.text]));
+      }
+      if (d.tip) {
+        g.addEventListener('mousemove', (ev) => showTip(ev.clientX, ev.clientY, d.tip));
+        g.addEventListener('mouseleave', hideTip);
+      }
+      svg.append(g);
+    });
+  });
+  return svg;
+}
+
+/** Sequential ramp: one hue, light to dark, v in [0,1]. */
+export function seqColor(v, hue = 210) {
+  const l = 0.86 - 0.58 * v;
+  const s = 0.35 + 0.45 * v;
+  return `hsl(${hue} ${Math.round(s * 100)}% ${Math.round(l * 100)}%)`;
+}

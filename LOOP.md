@@ -58,9 +58,31 @@ pull request for each.
 - [ ] The PR closes exactly one issue and says which
 - [ ] Tests added or updated for behaviour that changed
 - [ ] Experiments rerun if the simulation changed, results committed
-- [ ] Page checked in a browser
+- [ ] Page checked in a browser, and *watched for thirty seconds as a
+      stranger would*: is it too fast, too small, too cryptic? (cycle 2)
 - [ ] README / docs updated where a reader would look
 - [ ] Cycle log entry drafted
+
+## Learned procedure
+
+Things the loop got wrong once and now does differently. Each points at the
+cycle where it was learned.
+
+- **Open the PR as a draft right after the first commit** so the cycle log
+  entry can be written once, with the right number. (cycle 1)
+- **Human feedback jumps the queue.** When a person reports something about
+  the deployed result, the current cycle is parked and the report becomes
+  the next cycle. (cycle 2)
+- **Park by commenting on the issue, not by closing the PR.** GitHub will
+  not reopen a PR whose branch was rebased. (cycle 4)
+- **A fix is delivered when the person can see it.** Pages caches for ten
+  minutes; the build pill under the title says which version is on screen.
+  Say so when announcing a fix. (cycle 3)
+- **Never `npm test | grep`.** A pipe hides the exit code. Run the tests,
+  fail loudly, then filter. (cycle 3)
+- **Statistics of noise are not statistics.** A speed measure for an effect
+  that did not happen is fiction; make the function return null and test
+  that it does. (cycle 4)
 
 ## Labels
 

@@ -33,7 +33,7 @@
  * results stay comparable with cycle 0.
  */
 import { createEcology, GENES, makeRng } from '../src/index.js';
-import { ci95, permutationTest, cohensD, separationIndex } from '../src/stats.js';
+import { ci95, permutationTest, cohensD, armDivergence } from '../src/stats.js';
 import { writeResult, seeds, fmt, quick, timer } from './lib.js';
 
 const Q = quick();
@@ -95,34 +95,8 @@ function timecourse(kind) {
     };
     const sel = arm('selection');
     const neu = arm('neutral');
-    const idx = separationIndex(
-      sel.lo.map((l, i) => ({ lo: l, hi: sel.hi[i] })),
-      neu.lo.map((l, i) => ({ lo: l, hi: neu.hi[i] })),
-    );
-    // halfway step: first sample at which the gap between arms reaches half
-    // of its final value. A speed-of-selection measure that, unlike the
-    // separation step, does not shrink just because the CIs are narrow.
-    const finalGap = Math.abs(sel.mean.at(-1) - neu.mean.at(-1));
-    let half = null;
-    // only meaningful for genes whose arms actually separate; for the rest
-    // the "final gap" is drift noise and a halfway point would be fiction
-    if (idx >= 0 && finalGap > 0.02) {
-      for (let k = 0; k < sampleSteps.length; k++) {
-        if (Math.abs(sel.mean[k] - neu.mean[k]) >= finalGap / 2) {
-          half = sampleSteps[k];
-          break;
-        }
-      }
-    }
-    out.push({
-      gene: g,
-      name: GENE_NAMES[g],
-      selection: sel,
-      neutral: neu,
-      separationStep: idx >= 0 ? sampleSteps[idx] : null,
-      halfwayStep: half,
-      finalGap,
-    });
+    const { separationStep, halfwayStep, finalGap } = armDivergence(sel, neu, sampleSteps);
+    out.push({ gene: g, name: GENE_NAMES[g], selection: sel, neutral: neu, separationStep, halfwayStep, finalGap });
   }
   return out;
 }

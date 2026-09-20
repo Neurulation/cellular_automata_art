@@ -5,7 +5,7 @@
  */
 import { WORLDS } from '../src/index.js';
 import { makeStepClock, sliderToRate, rateToSlider } from '../src/clock.js';
-import { lineChart, intervalChart, legend, fmtNum } from './charts.js';
+import { lineChart, intervalChart, heatmap, legend, fmtNum } from './charts.js';
 
 const REPO = 'Neurulation/cellular_automata_art';
 const $ = (sel) => document.querySelector(sel);
@@ -397,8 +397,13 @@ async function loadGitHub() {
 
 // ---------------------------------------------------------------- data: experiments
 async function loadScience() {
-  const [lag, sel] = await Promise.all([loadJSON('experiments/results/predator_prey_lag.json'), loadJSON('experiments/results/selection_vs_drift.json')]);
+  const [lag, sel, sweep] = await Promise.all([
+    loadJSON('experiments/results/predator_prey_lag.json'),
+    loadJSON('experiments/results/selection_vs_drift.json'),
+    loadJSON('experiments/results/lag_sweep.json'),
+  ]);
   if (lag) renderLag(lag);
+  if (sweep) renderSweep(sweep);
   if (sel) renderSelection(sel);
 }
 
@@ -456,6 +461,57 @@ function renderLag(r) {
       yDomain: [-1, 1],
       markers: [{ x: r.lag.mean, label: `peak ≈ ${fmtNum(r.lag.mean, 0)}` }],
     }),
+  );
+}
+
+function renderSweep(r) {
+  const host = $('#exp-sweep');
+  const p = r.params;
+  const cellAt = (fg, hc) => r.cells.find((c) => c.foodGrowth === fg && c.hunterCost === hc);
+  const rows = p.foodGrowth.map((v) => ({ key: v, label: String(v) }));
+  const cols = p.hunterCost.map((v) => ({ key: v, label: String(v) }));
+  const tipFor = (c) => {
+    const lf = c.lagFraction;
+    return `hunterCost ${c.hunterCost} · foodGrowth ${c.foodGrowth}<br>coexistence ${c.coexisting}/${c.runs}` +
+      (lf ? `<br>lag/period <b>${lf.mean.toFixed(3)}</b> [${lf.lo.toFixed(3)}, ${lf.hi.toFixed(3)}]<br>period ${fmtNum(c.period.mean, 0)} steps · lag ${fmtNum(c.lag.mean, 1)} steps` : '') +
+      `<br>grazers ≈ ${fmtNum(c.meanGrazers, 0)} · hunters ≈ ${fmtNum(c.meanHunters, 0)}<br>${c.eligible ? (c.passing ? 'eligible, passes' : 'eligible, fails') : 'not eligible (coexistence < 75%)'}`;
+  };
+  const all = r.summary.allEligibleLagFraction;
+  host.innerHTML = `
+    <div>
+      <div class="eyebrow">Experiment 3</div>
+      <h3>${esc(r.title)} ${verdictBadge(r.verdict)}</h3>
+      <p class="muted">${esc(r.question)}</p>
+      <p><b>Plain version.</b> Experiment 1 found the quarter-cycle delay at one setting. That could be luck. Here the two knobs that matter most,
+      how expensive it is to be a hunter and how fast food grows back, are each turned through four values, and the delay is measured in every
+      one of the ${r.cells.length} combinations. Theory says the delay should stay near a quarter cycle wherever the two species keep cycling.</p>
+      <div class="stat-grid">
+        <div class="stat"><div class="k">cells with coexistence</div><div class="v">${r.summary.eligible}/${r.cells.length}</div><div class="ci">≥ 75% of ${p.runsPerCell} seeds</div></div>
+        <div class="stat"><div class="k">cells in the band</div><div class="v">${r.summary.passing}/${r.summary.eligible}</div><div class="ci">CI overlaps [${p.band[0]}, ${p.band[1]}]</div></div>
+        ${all ? `<div class="stat"><div class="k">lag / period, all eligible cells</div><div class="v">${(all.mean * 100).toFixed(0)}%</div><div class="ci">95% CI [${(all.lo * 100).toFixed(0)}%, ${(all.hi * 100).toFixed(0)}%] · theory 25%</div></div>` : ''}
+      </div>
+      <details><summary>Method and criterion</summary>
+        <p>${p.hunterCost.length} × ${p.foodGrowth.length} cells, ${p.runsPerCell} seeds each on a ${p.grid} grid, ${p.burnIn} burn-in and ${p.length} analysed steps. Per run: period from the grazer autocorrelation, peak cross-correlation lag within half a period, lag/period. A cell is <em>eligible</em> if at least 75% of its runs kept both species alive throughout; the prediction concerns persistent cycles. A cell <em>passes</em> if the 95% CI of its mean lag/period overlaps [0.20, 0.30]. Verdict, fixed before the run: supported if every eligible cell passes, weakly supported if at least three quarters do, otherwise not supported; inconclusive if no cell is eligible.</p>
+        <p>Hatched cells failed eligibility: at those settings hunters or grazers die out in most runs, which is itself a finding about where the ecology lives.</p>
+      </details>
+      <p class="small muted">Result file: <a href="experiments/results/lag_sweep.json">lag_sweep.json</a> · code: <a href="https://github.com/${REPO}/blob/main/experiments/lag_sweep.js">lag_sweep.js</a>. Generated ${new Date(r.generatedAt).toLocaleString()} in ${r.seconds.toFixed(0)}s.</p>
+    </div>
+    <div id="sweep-charts"></div>`;
+  const charts = $('#sweep-charts');
+  charts.append(
+    heatmap(rows, cols, (fg, hc) => {
+      const c = cellAt(fg, hc);
+      if (!c) return null;
+      const lf = c.lagFraction;
+      return { value: lf ? lf.mean / 0.5 : null, text: lf ? `${(lf.mean * 100).toFixed(0)}%` : '–', muted: !c.eligible, tip: tipFor(c) };
+    }, { title: 'Hunter lag as a fraction of the cycle period', xLabel: 'hunter metabolic cost per step', yLabel: 'food regrowth rate', hue: 210 }),
+  );
+  charts.append(
+    heatmap(rows, cols, (fg, hc) => {
+      const c = cellAt(fg, hc);
+      if (!c) return null;
+      return { value: c.coexistenceRate, text: `${c.coexisting}/${c.runs}`, muted: false, tip: tipFor(c) };
+    }, { title: 'Runs in which both species survived', xLabel: 'hunter metabolic cost per step', yLabel: 'food regrowth rate', hue: 160 }),
   );
 }
 
