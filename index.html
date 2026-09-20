@@ -61,8 +61,8 @@
         <label>seed <span class="muted small">(same seed, same world, always)</span>
           <input type="text" id="seed" spellcheck="false">
         </label>
-        <label>speed <span id="speed-v" class="mono">2×</span>
-          <input type="range" id="speed" min="1" max="12" value="2">
+        <label>speed <span id="speed-v" class="mono">10 steps/s</span> <span class="muted small">(independent of your screen's refresh rate)</span>
+          <input type="range" id="speed" min="0" max="100" value="42">
         </label>
         <label id="exposure-wrap" class="check"><input type="checkbox" id="exposure"> long exposure <span class="muted small">(frames linger, motion streaks)</span></label>
         <div id="life-opts" hidden>
@@ -90,7 +90,7 @@
           <div class="genes" id="genes"></div>
         </div>
         <div id="live"></div>
-        <p class="small muted" style="margin:0">Click the canvas to drop grazers, shift-click for hunters. Space pauses.</p>
+        <p class="small muted" style="margin:0">Click the canvas to drop grazers, shift-click for hunters. Space pauses, <span class="mono">[</span> and <span class="mono">]</span> change speed, <span class="mono">.</span> steps once, <span class="mono">n</span> reseeds.</p>
       </aside>
     </div>
   </section>

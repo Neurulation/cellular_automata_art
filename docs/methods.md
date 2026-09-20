@@ -109,7 +109,16 @@ criteria written in the script header, not chosen after looking.
 - **Known limitation**: end-of-run snapshot; the time course of divergence
   is not yet measured.
 
-## 4. Reproducing
+## 4. Timing on the page
+
+The page advances the world by `⌊elapsed seconds × rate⌉` steps per animation
+frame with a fractional carry (`src/clock.js`), so the simulation speed is
+the same on every display. Elapsed time is clamped to 0.25 s per frame and
+steps to 60 per frame, so a background tab resumes gently instead of
+replaying its backlog. Default rate 10 steps/s; the slider is logarithmic
+from 1 to 240. None of this touches the world: a step is a step.
+
+## 5. Reproducing
 
 ```
 npm test                       # all tests, about two seconds
