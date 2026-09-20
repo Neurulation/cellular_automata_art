@@ -28,7 +28,13 @@
  *                         Because it is neutral it drifts; that is a feature
  *                         the selection-vs-drift experiment relies on.
  *
- * Presentation-only state: two "tint" fields carry the cosine and sine of the
+ * Presentation-only state (never read by behaviour, excluded from the
+ * fingerprint): a "presence" field that hunters deposit into, diffusing and
+ * evaporating like trail, so the ground under a pack of hunters can be drawn
+ * as a shadow rather than the hunters as a thousand dots; and two "tint"
+ * fields described next.
+ *
+ * Two "tint" fields carry the cosine and sine of the
  * hue of whoever deposited trail, diffusing and evaporating exactly like the
  * trail. They let the glow take the colour of the lineage that laid it. They
  * are never read by any behaviour and are excluded from the fingerprint, so
@@ -85,6 +91,10 @@ export const DEFAULTS = Object.freeze({
   mutationSd: 0.06,
   // exploration noise added to movement scores
   noise: 0.05,
+  // presentation-only: how much presence a hunter leaves per step and how
+  // fast it fades (faster than trail, so the shadow follows the pack)
+  presenceDeposit: 0.12,
+  presenceEvaporation: 0.06,
   // when true, behaviour ignores genes (uses a fixed reference genome)
   // while inheritance and mutation continue. Used to isolate selection.
   neutral: false,
@@ -111,6 +121,8 @@ export class Ecology {
     this.tintY = new Float32Array(n);
     this.tintXNext = new Float32Array(n);
     this.tintYNext = new Float32Array(n);
+    this.presence = new Float32Array(n);
+    this.presenceNext = new Float32Array(n);
     this.fertility = new Float32Array(n);
     this.kind = new Uint8Array(n);
     this.energy = new Float32Array(n);
@@ -139,6 +151,7 @@ export class Ecology {
       this.trail[i] = 0;
       this.tintX[i] = 0;
       this.tintY[i] = 0;
+      this.presence[i] = 0;
       this.kind[i] = EMPTY;
       this.energy[i] = 0;
       this.age[i] = 0;
@@ -191,9 +204,10 @@ export class Ecology {
   }
 
   stepFields() {
-    const { width, height, food, trail, trailNext, fertility, tintX, tintY, tintXNext, tintYNext } = this;
-    const { diffusion, evaporation, foodGrowth } = this.params;
+    const { width, height, food, trail, trailNext, fertility, tintX, tintY, tintXNext, tintYNext, presence, presenceNext } = this;
+    const { diffusion, evaporation, foodGrowth, presenceEvaporation } = this.params;
     const keep = 1 - evaporation;
+    const keepP = 1 - presenceEvaporation;
     for (let y = 0; y < height; y++) {
       const yu = ((y - 1 + height) % height) * width;
       const yd = ((y + 1) % height) * width;
@@ -208,6 +222,8 @@ export class Ecology {
         tintXNext[i] = (tintX[i] + diffusion * lx) * keep;
         const ly = tintY[yu + x] + tintY[yd + x] + tintY[yc + xl] + tintY[yc + xr] - 4 * tintY[i];
         tintYNext[i] = (tintY[i] + diffusion * ly) * keep;
+        const lp = presence[yu + x] + presence[yd + x] + presence[yc + xl] + presence[yc + xr] - 4 * presence[i];
+        presenceNext[i] = (presence[i] + diffusion * lp) * keepP;
         food[i] += foodGrowth * (fertility[i] - food[i]);
       }
     }
@@ -217,6 +233,8 @@ export class Ecology {
     this.tintXNext = tintX;
     this.tintY = tintYNext;
     this.tintYNext = tintY;
+    this.presence = presenceNext;
+    this.presenceNext = presence;
   }
 
   stepAgents() {
@@ -277,6 +295,7 @@ export class Ecology {
         if (energy[here] >= thr) this.reproduce(here, GRAZER);
       } else {
         energy[i] -= p.hunterCost;
+        this.presence[i] += p.presenceDeposit; // presentation only
         if (energy[i] <= 0) {
           this.kill(i);
           continue;
@@ -411,12 +430,14 @@ export class Ecology {
    *               that laid it) and whose saturation comes from how coherent
    *               that hue is locally: mixed lineages glow pale, one lineage
    *               glows in its own colour
+   *   presence    a warm shadow where hunters have been: the ground dims and
+   *               reddens under a pack, so predation reads as weather, not dots
    *   grazers     hue from the neutral marker gene, lightness from energy
-   *   hunters     deep red, brightening toward orange with energy; kept darker
-   *               than the grazers so a minority species does not dominate
+   *   hunters     drawn quietly: a dark red mark, brightening to orange only
+   *               when well fed, so the eye goes to the few that matter
    */
   paint(u32) {
-    const { kind, energy, food, trail, genome, fertility, tintX, tintY } = this;
+    const { kind, energy, food, trail, genome, fertility, tintX, tintY, presence } = this;
     const n = kind.length;
     for (let i = 0; i < n; i++) {
       const k = kind[i];
@@ -426,7 +447,8 @@ export class Ecology {
         u32[i] = hsl(h, 0.8, l);
       } else if (k === HUNTER) {
         const e = clamp01(energy[i] / 3);
-        u32[i] = rgba(Math.round(110 + 120 * e), Math.round(22 + 48 * e), Math.round(20 + 14 * e));
+        const fed = e > 0.45 ? (e - 0.45) / 0.55 : 0;
+        u32[i] = rgba(Math.round(70 + 60 * e + 120 * fed), Math.round(16 + 20 * e + 60 * fed), Math.round(14 + 10 * e + 20 * fed));
       } else {
         const fert = fertility[i];
         const f = food[i];
@@ -447,6 +469,14 @@ export class Ecology {
           r += glow * gr * 0.8;
           g += glow * gg * 0.8;
           b += glow * (gb * 0.8 + 40 * (1 - coherence));
+        }
+        const shadow = clamp01(presence[i] * 2.6);
+        if (shadow > 0.01) {
+          // dim toward a dark red: the ground under hunters loses its glow
+          const keep = 1 - 0.6 * shadow;
+          r = r * keep + 58 * shadow;
+          g = g * keep + 8 * shadow;
+          b = b * keep + 10 * shadow;
         }
         u32[i] = rgba(Math.min(255, r | 0), Math.min(255, g | 0), Math.min(255, b | 0));
       }

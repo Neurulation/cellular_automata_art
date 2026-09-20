@@ -146,6 +146,25 @@ test('tint fields never exceed the trail they colour (|tint| <= trail)', () => {
   }
 });
 
+test('presence field: non-negative, zero without hunters, and bounded by what was deposited', () => {
+  const w = small();
+  let deposited = 0;
+  for (let t = 0; t < 80; t++) {
+    const hunters = w.stats().hunters;
+    w.step();
+    deposited += hunters * w.params.presenceDeposit * 1.05; // hunters born this step may also deposit
+    let total = 0;
+    for (const v of w.presence) {
+      assert.ok(v >= 0 && Number.isFinite(v));
+      total += v;
+    }
+    assert.ok(total <= deposited + 1e-3, `presence ${total} exceeds deposits ${deposited}`);
+  }
+  const none = small({ hunterInit: 0 });
+  for (let t = 0; t < 30; t++) none.step();
+  assert.ok(none.presence.every((v) => v === 0));
+});
+
 test('paint covers every pixel with opaque colour', () => {
   const w = small();
   for (let t = 0; t < 20; t++) w.step();

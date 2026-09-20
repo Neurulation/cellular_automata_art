@@ -68,5 +68,15 @@
     "summary": "Continuous-state chemistry joins the discrete worlds: two fields, one autocatalytic reaction, Pearson's five regimes as presets. Six tests pin it to closed-form ground truth (exact fixed point, mass conservation, linear decay rate, stencil symmetry) before anyone judges it by eye. Same World interface, so the page, the clock and the snapshot tool needed only wiring.",
     "learned": "My first linear-decay test used a perturbation too large for first-order theory and failed by one percent; the fix was to shrink the perturbation, not to loosen the tolerance. The heatmap from cycle 5 also needed a value domain: mapping 25 to 28 percent onto a 0 to 50 percent ramp hid the very differences the chart existed to show.",
     "next": "Hunter density rendering; the 26% hypothesis (#14); a portrait gallery of seeds worth keeping."
+  },
+  {
+    "cycle": 7,
+    "title": "Hunters as presence, and a gallery anyone can regenerate",
+    "date": "2026-09-20",
+    "issue": 16,
+    "pr": 17,
+    "summary": "Hunters now leave a presentation-only presence field, drawn as a warm shadow over the ground, and are themselves drawn dark unless well fed, so predation reads as weather over the lineage territories rather than as dots. A gallery of six committed portraits, each with the exact command that regenerates it byte for byte, joins the page.",
+    "learned": "The first shadow was too faint to notice at all; I only saw that on the rendered image, not in the code. Rendering to a file and looking is now a fixed step for any art cycle, the same way running the tests is for any code cycle.",
+    "next": "The 26 percent hypothesis (#14); an about page for the mixed audience; a way for visitors to submit a seed they like."
   }
 ]
