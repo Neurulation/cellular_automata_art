@@ -48,5 +48,15 @@
     "summary": "Experiment 2 now records population-mean genes every 10 steps in both arms and reports, per gene, when the selection and neutral arms part for good (separation step) and how fast the gap opens (halfway step). Ten small ribbon charts on the page show it. End-state verdict unchanged and still supported.",
     "learned": "The separation step is dominated by how narrow the confidence bands are, not by how big the effect is: with 20 paired runs the grazer reproduction threshold separates at the very first sample. The halfway step is the better speed measure, and it only makes sense for genes that separate at all, which I got wrong on the first pass and fixed before running the full set.",
     "next": "Parameter sweep for the predator-prey lag (#4); a fourth world (#6); page copy that points readers at the build pill."
+  },
+  {
+    "cycle": 5,
+    "title": "The quarter-period lag across parameters",
+    "date": "2026-09-20",
+    "issue": 4,
+    "pr": 13,
+    "summary": "Experiment 3 turns two knobs, hunter metabolic cost and food regrowth, through a 4 by 4 grid with 8 seeds per cell. In all 14 cells where both species persisted, the hunter lag sits in the predicted quarter-period band; pooled, 26.2% of a cycle with a 95% CI of 25.8 to 26.6. Two cheap-hunter, rich-food cells mostly went extinct and are shown hatched.",
+    "learned": "The lag is robust, and it is also consistently a little above a quarter. The CI excludes 25% exactly, which the pre-registered band was too wide to notice. A real deviation from the textbook model, probably from logistic prey growth and discrete space, and a hypothesis worth its own experiment rather than a footnote.",
+    "next": "Write the 26% finding up as a hypothesis issue; fourth world (#6); hunter density rendering."
   }
 ]
