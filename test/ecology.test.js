@@ -139,3 +139,15 @@ test('paint covers every pixel with opaque colour', () => {
   w.paint(buf);
   for (const px of buf) assert.equal(px >>> 24, 255);
 });
+
+test('golden fingerprints: the simulation is unchanged since cycle 0', () => {
+  // Recorded on main at cycle 0. Rendering and presentation changes must not
+  // move these. If a deliberate change to the dynamics moves them, update the
+  // values in the same PR and say so in the cycle log.
+  const a = new Ecology({ width: 48, height: 48, seed: 'golden' });
+  for (let i = 0; i < 150; i++) a.step();
+  assert.equal(a.fingerprint(), '4ea606fa');
+  const b = new Ecology({ width: 96, height: 96, seed: 'golden-96' });
+  for (let i = 0; i < 300; i++) b.step();
+  assert.equal(b.fingerprint(), '697bf953');
+});
