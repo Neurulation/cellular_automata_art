@@ -19,6 +19,7 @@
       <a href="#what">What</a>
       <a href="#loop">The loop</a>
       <a href="#science">The science</a>
+      <a href="#gallery">Gallery</a>
       <a href="#code">Code</a>
       <a href="https://github.com/Neurulation/cellular_automata_art">GitHub ↗</a>
     </nav>
@@ -123,7 +124,8 @@
           that make bad choices starve or get eaten; those that make good ones fill the grid with their descendants. That is natural
           selection, running live.</p>
           <p><b>Green-to-violet cells</b> are grazers. Their hue is a gene that does <em>nothing</em>, so it works as a family name: watch
-          patches of one colour spread as a lineage takes over, then get replaced. <b>Deep red cells</b> are hunters, brightening toward orange when well fed. The <b>glow</b>
+          patches of one colour spread as a lineage takes over, then get replaced. <b>Dark red marks</b> are hunters, brightening to orange only when well fed; the <b>reddish shadow</b> on the
+          ground is where a pack has been, so predation shows as weather over the territories rather than as dots. The <b>glow</b>
           is trail: a chemical grazers leave where they have eaten, which spreads and fades exactly like the trail in slime-mould models.
           It takes the colour of the lineage that laid it, so a network glowing in one hue is one family's territory.
           The dim background is food, regrowing over a fixed landscape of fertile valleys and barren ridges.</p>
@@ -200,6 +202,28 @@
     <div class="experiment" id="exp-lag"><p class="muted">loading…</p></div>
     <div class="experiment" id="exp-sweep"><p class="muted">loading…</p></div>
     <div class="experiment" id="exp-sel"><p class="muted">loading…</p></div>
+  </section>
+
+  <section class="block" id="gallery">
+    <div class="eyebrow">Gallery</div>
+    <h2>Portraits anyone can regenerate</h2>
+    <p class="muted" style="max-width:760px">Every world is deterministic, so a picture is a recipe: world, seed, step count. These were rendered from the
+    command line with <code>scripts/snapshot.js</code>, no browser involved, and committed. Run the command under any of them and you get the
+    same bytes.</p>
+    <div class="gallery">
+      <figure><img src="docs/img/gallery/ecology-portrait-1-2400.png" alt="Ecology, seed portrait-1, step 2400" loading="lazy">
+        <figcaption>Ecology · lineage territories with hunter shadows<br><code>node scripts/snapshot.js --seed portrait-1 --steps 2400 --size 192</code></figcaption></figure>
+      <figure><img src="docs/img/gallery/ecology-kelp-4471-3200.png" alt="Ecology, seed kelp-4471, step 3200" loading="lazy">
+        <figcaption>Ecology · late succession<br><code>node scripts/snapshot.js --seed kelp-4471 --steps 3200 --size 192</code></figcaption></figure>
+      <figure><img src="docs/img/gallery/grayscott-worms-11-500.png" alt="Gray-Scott worms, seed 11, step 500" loading="lazy">
+        <figcaption>Reaction · Pearson's worms<br><code>node scripts/snapshot.js --world grayscott --preset worms --seed 11 --steps 500 --size 192</code></figcaption></figure>
+      <figure><img src="docs/img/gallery/grayscott-waves-5-300.png" alt="Gray-Scott waves, seed 5, step 300" loading="lazy">
+        <figcaption>Reaction · waves<br><code>node scripts/snapshot.js --world grayscott --preset waves --seed 5 --steps 300 --size 192</code></figcaption></figure>
+      <figure><img src="docs/img/gallery/life-highlife-soup-9-400.png" alt="HighLife soup, seed soup-9, step 400" loading="lazy">
+        <figcaption>Life · HighLife from a random soup<br><code>node scripts/snapshot.js --world life --rule B36/S23 --seed soup-9 --steps 400 --size 192</code></figcaption></figure>
+      <figure><img src="docs/img/gallery/elementary-110-200.png" alt="Rule 110, 200 rows" loading="lazy">
+        <figcaption>Elementary · rule 110, the one that can compute<br><code>node scripts/snapshot.js --world elementary --rule 110 --steps 200 --size 192 --scale 2</code></figcaption></figure>
+    </div>
   </section>
 
   <section class="block" id="code">

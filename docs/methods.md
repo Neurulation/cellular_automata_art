@@ -19,6 +19,10 @@ page). Cell index `i = y·W + x`. Neighbourhood: Moore (8 cells).
 - **Trail** `τ_i ≥ 0`: `τ ← (τ + D·∇²τ)·(1 − e)` with the five-point
   Laplacian, `D = 0.18`, `e = 0.03`. Grazers add `4·b_eaten·G_deposit`.
 
+- **Presence** `π_i`: presentation only. Each hunter adds 0.12 per step at
+  its cell; diffusion as trail, evaporation 6%. Rendered as a warm shadow.
+  Never read by behaviour, excluded from `fingerprint()`. Tested:
+  non-negative, zero without hunters, total bounded by total deposits.
 - **Tint** `(τx, τy)`: presentation only. Receives `d·(cos h, sin h)` where
   `d` is the trail deposit and `h = 2π·G₄` of the depositing grazer; same
   diffusion and evaporation as trail. Never read by behaviour, excluded from
