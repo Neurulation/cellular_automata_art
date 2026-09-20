@@ -185,3 +185,19 @@ export function dominantPeriod(xs, maxLag) {
   }
   return best > 0 ? best : NaN;
 }
+
+/**
+ * Separation index of two confidence-interval series: the first index from
+ * which the intervals never overlap again through the end of the series.
+ * a, b: arrays of { lo, hi } of equal length. Returns -1 if they overlap at
+ * the last index (never separated, or separated and rejoined).
+ */
+export function separationIndex(a, b) {
+  let idx = -1;
+  for (let i = 0; i < Math.min(a.length, b.length); i++) {
+    const overlap = a[i].lo <= b[i].hi && b[i].lo <= a[i].hi;
+    if (overlap) idx = -1;
+    else if (idx < 0) idx = i;
+  }
+  return idx;
+}
