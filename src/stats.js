@@ -201,3 +201,31 @@ export function separationIndex(a, b) {
   }
   return idx;
 }
+
+/**
+ * How two arms of a paired experiment diverge over time.
+ * sel, neu: { mean[], lo[], hi[] } sampled at `steps[]`.
+ * Returns:
+ *   separationStep  first step from which the CIs never overlap again, or null
+ *   halfwayStep     first step at which |mean gap| reaches half its final
+ *                   value; null unless the arms separate and the final gap
+ *                   exceeds `minGap` (otherwise it would be a statistic of noise)
+ *   finalGap        |sel.mean - neu.mean| at the last sample
+ */
+export function armDivergence(sel, neu, steps, minGap = 0.02) {
+  const idx = separationIndex(
+    sel.lo.map((l, i) => ({ lo: l, hi: sel.hi[i] })),
+    neu.lo.map((l, i) => ({ lo: l, hi: neu.hi[i] })),
+  );
+  const finalGap = Math.abs(sel.mean.at(-1) - neu.mean.at(-1));
+  let halfwayStep = null;
+  if (idx >= 0 && finalGap > minGap) {
+    for (let k = 0; k < steps.length; k++) {
+      if (Math.abs(sel.mean[k] - neu.mean[k]) >= finalGap / 2) {
+        halfwayStep = steps[k];
+        break;
+      }
+    }
+  }
+  return { separationStep: idx >= 0 ? steps[idx] : null, halfwayStep, finalGap };
+}

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mean, sd, median, ci95, crossCorrelation, peakLag, permutationTest, cohensD, signTest, tCritical95, dominantPeriod, autocorrelation, separationIndex } from '../src/stats.js';
+import { mean, sd, median, ci95, crossCorrelation, peakLag, permutationTest, cohensD, signTest, tCritical95, dominantPeriod, autocorrelation, separationIndex, armDivergence } from '../src/stats.js';
 import { makeRng } from '../src/rng.js';
 
 test('mean, sd, median on known values', () => {
@@ -73,4 +73,21 @@ test('separationIndex finds the first lasting separation and rejects rejoining',
   const never = [band(0.5, 1.5), band(0.5, 1.5), band(0.5, 1.5), band(0.5, 1.5)];
   assert.equal(separationIndex(a, never), -1);
   assert.equal(separationIndex([band(0, 1)], [band(2, 3)]), 0);
+});
+
+test('armDivergence: halfway is null unless the arms separate', () => {
+  const steps = [10, 20, 30, 40, 50];
+  const flat = { mean: [0.5, 0.5, 0.5, 0.5, 0.5], lo: [0.45, 0.45, 0.45, 0.45, 0.45], hi: [0.55, 0.55, 0.55, 0.55, 0.55] };
+  // drifts away but the CIs keep overlapping: no separation, so no halfway even though the gap is 0.08
+  const drift = { mean: [0.5, 0.52, 0.55, 0.57, 0.58], lo: [0.4, 0.42, 0.45, 0.47, 0.48], hi: [0.6, 0.62, 0.65, 0.67, 0.68] };
+  const d = armDivergence(flat, drift, steps);
+  assert.equal(d.separationStep, null);
+  assert.equal(d.halfwayStep, null);
+  assert.ok(Math.abs(d.finalGap - 0.08) < 1e-9);
+  // CIs still touch at the second sample (hi 0.46 > flat lo 0.45), separate from the third;
+  // the mean gap reaches half of its final 0.2 already at the second sample
+  const sel = { mean: [0.5, 0.39, 0.32, 0.3, 0.3], lo: [0.45, 0.32, 0.3, 0.28, 0.28], hi: [0.55, 0.46, 0.34, 0.32, 0.32] };
+  const s = armDivergence(sel, flat, steps);
+  assert.equal(s.separationStep, 30);
+  assert.equal(s.halfwayStep, 20);
 });

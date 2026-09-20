@@ -115,6 +115,21 @@ criteria written in the script header, not chosen after looking.
   grazer reproduction threshold is among the earliest genes to separate, and
   the neutral marker never separates. Ties are reported, not broken.
 
+### E3: lag across parameters (`lag_sweep.js`)
+- **Prediction**: the quarter-period lag is a property of persistent
+  predator-prey cycles, not of one tuning.
+- **Design**: 4 × 4 grid over `hunterCost` ∈ {0.035, 0.05, 0.065, 0.08}
+  and `foodGrowth` ∈ {0.008, 0.012, 0.016, 0.020}; 8 seeds per cell,
+  96 × 96, 300 burn-in, 1500 analysed steps; per run the E1 statistics.
+- **Criteria** (pre-registered): a cell is eligible if ≥ 75% of runs keep
+  both species alive throughout; it passes if the 95% CI of mean
+  lag/period overlaps [0.20, 0.30]. Supported if all eligible cells pass,
+  weakly supported if ≥ 75% do, otherwise not supported; inconclusive if no
+  cell is eligible.
+- **Known limitation**: two parameters of about fifteen; extinction cells
+  are excluded from the criterion but reported as a map of where the
+  ecology persists.
+
 ## 4. Timing on the page
 
 The page advances the world by `⌊elapsed seconds × rate⌉` steps per animation
