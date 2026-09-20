@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: Tests and quick experiments
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Unit and property tests
+        run: npm test
+      - name: Experiments smoke run (fast settings, results discarded)
+        run: |
+          node experiments/run_all.js --quick
+          git checkout -- experiments/results
+      - name: Validate cycle log
+        run: node scripts/validate_cycles.js
