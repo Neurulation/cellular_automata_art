@@ -132,6 +132,20 @@ test('neutral mode ignores genes for behaviour but still inherits them', () => {
   assert.ok(w.stats().grazers > 0);
 });
 
+test('tint fields never exceed the trail they colour (|tint| <= trail)', () => {
+  // Deposits add d*(cos h, sin h) to the tint and d to the trail, and both
+  // fields undergo the same linear diffusion and evaporation, so the vector
+  // magnitude can never exceed the scalar. Float rounding gets a small slack.
+  const w = small();
+  for (let t = 0; t < 120; t++) {
+    w.step();
+    for (let i = 0; i < w.trail.length; i++) {
+      const m = Math.hypot(w.tintX[i], w.tintY[i]);
+      assert.ok(m <= w.trail[i] + 1e-4, `cell ${i}: |tint| ${m} > trail ${w.trail[i]}`);
+    }
+  }
+});
+
 test('paint covers every pixel with opaque colour', () => {
   const w = small();
   for (let t = 0; t < 20; t++) w.step();

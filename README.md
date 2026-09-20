@@ -51,6 +51,7 @@ No dependencies. Node 20 or newer.
 npm test                          # 39 tests, about 2 seconds
 node experiments/run_all.js       # regenerate results, about a minute
 python3 -m http.server 8000       # open http://localhost:8000
+node scripts/snapshot.js --seed portrait-1 --steps 900 --out portrait.png   # reproducible render
 ```
 
 ## Layout
@@ -62,6 +63,7 @@ src/                the engine: worlds, rng, stats (runs in Node and browser)
 test/               node --test suites
 experiments/        seeded experiments and their JSON results
 data/cycles.json    the loop's log, rendered as the timeline
+scripts/            cycle-log validator, PNG snapshot renderer
 docs/methods.md     rigorous definitions
 LOOP.md             the protocol
 .github/workflows   CI (tests + quick experiments) and Pages deploy

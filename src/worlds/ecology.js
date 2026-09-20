@@ -28,6 +28,12 @@
  *                         Because it is neutral it drifts; that is a feature
  *                         the selection-vs-drift experiment relies on.
  *
+ * Presentation-only state: two "tint" fields carry the cosine and sine of the
+ * hue of whoever deposited trail, diffusing and evaporating exactly like the
+ * trail. They let the glow take the colour of the lineage that laid it. They
+ * are never read by any behaviour and are excluded from the fingerprint, so
+ * the golden-fingerprint test proves they cannot change the dynamics.
+ *
  * Update rule (one step):
  *   1. trail diffuses (5-point stencil) and evaporates
  *   2. food regrows toward the local fertility cap
@@ -41,7 +47,7 @@
  */
 
 import { makeRng, valueNoise, hashBytes } from '../rng.js';
-import { hsl, rgba, clamp01 } from '../world.js';
+import { hsl, hslToRgb, rgba, clamp01 } from '../world.js';
 
 export const EMPTY = 0;
 export const GRAZER = 1;
@@ -101,6 +107,10 @@ export class Ecology {
     this.food = new Float32Array(n);
     this.trail = new Float32Array(n);
     this.trailNext = new Float32Array(n);
+    this.tintX = new Float32Array(n);
+    this.tintY = new Float32Array(n);
+    this.tintXNext = new Float32Array(n);
+    this.tintYNext = new Float32Array(n);
     this.fertility = new Float32Array(n);
     this.kind = new Uint8Array(n);
     this.energy = new Float32Array(n);
@@ -127,6 +137,8 @@ export class Ecology {
       this.fertility[i] = 0.15 + 0.85 * f * f;
       this.food[i] = this.fertility[i] * 0.8;
       this.trail[i] = 0;
+      this.tintX[i] = 0;
+      this.tintY[i] = 0;
       this.kind[i] = EMPTY;
       this.energy[i] = 0;
       this.age[i] = 0;
@@ -179,7 +191,7 @@ export class Ecology {
   }
 
   stepFields() {
-    const { width, height, food, trail, trailNext, fertility } = this;
+    const { width, height, food, trail, trailNext, fertility, tintX, tintY, tintXNext, tintYNext } = this;
     const { diffusion, evaporation, foodGrowth } = this.params;
     const keep = 1 - evaporation;
     for (let y = 0; y < height; y++) {
@@ -192,11 +204,19 @@ export class Ecology {
         const i = yc + x;
         const lap = trail[yu + x] + trail[yd + x] + trail[yc + xl] + trail[yc + xr] - 4 * trail[i];
         trailNext[i] = (trail[i] + diffusion * lap) * keep;
+        const lx = tintX[yu + x] + tintX[yd + x] + tintX[yc + xl] + tintX[yc + xr] - 4 * tintX[i];
+        tintXNext[i] = (tintX[i] + diffusion * lx) * keep;
+        const ly = tintY[yu + x] + tintY[yd + x] + tintY[yc + xl] + tintY[yc + xr] - 4 * tintY[i];
+        tintYNext[i] = (tintY[i] + diffusion * ly) * keep;
         food[i] += foodGrowth * (fertility[i] - food[i]);
       }
     }
     this.trail = trailNext;
     this.trailNext = trail;
+    this.tintX = tintXNext;
+    this.tintXNext = tintX;
+    this.tintY = tintYNext;
+    this.tintYNext = tintY;
   }
 
   stepAgents() {
@@ -222,7 +242,13 @@ export class Ecology {
         energy[i] += bite * p.foodValue;
         // deposit trail in proportion to what was eaten: trail is a signal
         // that says "there was food here", which is why following it can pay
-        trail[i] += this.gene(i, G_DEPOSIT) * bite * 4;
+        const deposit = this.gene(i, G_DEPOSIT) * bite * 4;
+        trail[i] += deposit;
+        if (deposit > 0) {
+          const hue = this.genome[i * GENES + G_MARKER] * 6.283185307179586;
+          this.tintX[i] += deposit * Math.cos(hue);
+          this.tintY[i] += deposit * Math.sin(hue);
+        }
         if (energy[i] <= 0) {
           this.kill(i);
           continue;
@@ -379,29 +405,49 @@ export class Ecology {
   }
 
   /**
-   * Paint the world. Background: food as a dim earth tone on the fertility
-   * map. Trail: a cool glow. Grazers: hue from the neutral marker gene,
-   * brightness from energy. Hunters: hot white-orange.
+   * Paint the world.
+   *   background  fertility as a dark earth tone, food as a faint green lift
+   *   trail       a glow whose hue comes from the tint fields (the lineage
+   *               that laid it) and whose saturation comes from how coherent
+   *               that hue is locally: mixed lineages glow pale, one lineage
+   *               glows in its own colour
+   *   grazers     hue from the neutral marker gene, lightness from energy
+   *   hunters     deep red, brightening toward orange with energy; kept darker
+   *               than the grazers so a minority species does not dominate
    */
   paint(u32) {
-    const { kind, energy, food, trail, genome, fertility } = this;
+    const { kind, energy, food, trail, genome, fertility, tintX, tintY } = this;
     const n = kind.length;
     for (let i = 0; i < n; i++) {
       const k = kind[i];
       if (k === GRAZER) {
         const h = genome[i * GENES + G_MARKER] * 360;
-        const l = 0.35 + 0.35 * clamp01(energy[i] / 2);
-        u32[i] = hsl(h, 0.85, l);
+        const l = 0.28 + 0.42 * clamp01(energy[i] / 1.5);
+        u32[i] = hsl(h, 0.8, l);
       } else if (k === HUNTER) {
         const e = clamp01(energy[i] / 3);
-        u32[i] = rgba(255, Math.round(200 + 55 * e), Math.round(160 + 95 * e));
+        u32[i] = rgba(Math.round(110 + 120 * e), Math.round(22 + 48 * e), Math.round(20 + 14 * e));
       } else {
-        const t = clamp01(trail[i] * 1.2);
-        const f = food[i];
         const fert = fertility[i];
-        const r = 8 + 22 * fert + 40 * t;
-        const g = 10 + 30 * f + 120 * t;
-        const b = 14 + 24 * fert + 150 * t;
+        const f = food[i];
+        let r = 7 + 18 * fert;
+        let g = 9 + 14 * fert + 26 * f;
+        let b = 13 + 22 * fert;
+        const t = trail[i];
+        if (t > 0.004) {
+          const tx = tintX[i];
+          const ty = tintY[i];
+          const mag = Math.sqrt(tx * tx + ty * ty);
+          const coherence = clamp01(mag / t);
+          const hue = (Math.atan2(ty, tx) * 57.29577951308232 + 360) % 360;
+          // incoherent (mixed-lineage) trail stays a dim cool haze; a single
+          // lineage's trail glows brighter in its own colour
+          const glow = clamp01(t * 1.2) * (0.45 + 0.55 * coherence);
+          const [gr, gg, gb] = hslToRgb(hue, 0.15 + 0.75 * coherence, 0.52 + 0.14 * coherence);
+          r += glow * gr * 0.8;
+          g += glow * gg * 0.8;
+          b += glow * (gb * 0.8 + 40 * (1 - coherence));
+        }
         u32[i] = rgba(Math.min(255, r | 0), Math.min(255, g | 0), Math.min(255, b | 0));
       }
     }

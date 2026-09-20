@@ -27,7 +27,9 @@ const state = {
   fps: 0,
   lifeRule: 'B3/S23',
   elementaryRule: 30,
+  exposure: false,
 };
+window.perpetual = state; // for debugging and reproducible screenshots
 
 function randomSeed() {
   const words = ['moss', 'ember', 'tide', 'quartz', 'fern', 'dusk', 'lichen', 'basalt', 'aurora', 'kelp', 'spore', 'drift'];
@@ -70,7 +72,7 @@ let image = null;
 let pixels = null;
 
 function makeWorld() {
-  const size = 160;
+  const size = 192;
   let w;
   if (state.kind === 'ecology') w = WORLDS.ecology.create({ width: size, height: size, seed: state.seed });
   else if (state.kind === 'life') w = WORLDS.life.create({ width: size, height: size, seed: state.seed, rule: state.lifeRule });
@@ -106,7 +108,10 @@ function draw() {
   w.paint(pixels);
   offCtx.putImageData(image, 0, 0);
   ctx.imageSmoothingEnabled = false;
+  // long exposure: let the previous frame linger so motion leaves streaks
+  ctx.globalAlpha = state.exposure && state.kind === 'ecology' ? 0.28 : 1;
   ctx.drawImage(off, 0, 0, canvas.width, canvas.height);
+  ctx.globalAlpha = 1;
 }
 
 let history_ = [];
@@ -204,6 +209,8 @@ function syncControls() {
   $('#life-rule').value = state.lifeRule;
   $('#elementary-rule').value = state.elementaryRule;
   $('#world-tagline').textContent = WORLDS[state.kind].tagline;
+  $('#exposure').checked = state.exposure;
+  $('#exposure-wrap').hidden = state.kind !== 'ecology';
   document.querySelectorAll('[data-explain]').forEach((n) => (n.hidden = n.dataset.explain !== state.kind));
 }
 
@@ -230,6 +237,10 @@ $('#reseed').addEventListener('click', () => {
 $('#seed').addEventListener('change', (e) => {
   state.seed = e.target.value.trim() || randomSeed();
   makeWorld();
+});
+$('#exposure').addEventListener('change', (e) => {
+  state.exposure = e.target.checked;
+  draw();
 });
 $('#speed').addEventListener('input', (e) => {
   state.speed = +e.target.value;
