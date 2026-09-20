@@ -132,10 +132,36 @@ test('neutral mode ignores genes for behaviour but still inherits them', () => {
   assert.ok(w.stats().grazers > 0);
 });
 
+test('tint fields never exceed the trail they colour (|tint| <= trail)', () => {
+  // Deposits add d*(cos h, sin h) to the tint and d to the trail, and both
+  // fields undergo the same linear diffusion and evaporation, so the vector
+  // magnitude can never exceed the scalar. Float rounding gets a small slack.
+  const w = small();
+  for (let t = 0; t < 120; t++) {
+    w.step();
+    for (let i = 0; i < w.trail.length; i++) {
+      const m = Math.hypot(w.tintX[i], w.tintY[i]);
+      assert.ok(m <= w.trail[i] + 1e-4, `cell ${i}: |tint| ${m} > trail ${w.trail[i]}`);
+    }
+  }
+});
+
 test('paint covers every pixel with opaque colour', () => {
   const w = small();
   for (let t = 0; t < 20; t++) w.step();
   const buf = new Uint32Array(48 * 48);
   w.paint(buf);
   for (const px of buf) assert.equal(px >>> 24, 255);
+});
+
+test('golden fingerprints: the simulation is unchanged since cycle 0', () => {
+  // Recorded on main at cycle 0. Rendering and presentation changes must not
+  // move these. If a deliberate change to the dynamics moves them, update the
+  // values in the same PR and say so in the cycle log.
+  const a = new Ecology({ width: 48, height: 48, seed: 'golden' });
+  for (let i = 0; i < 150; i++) a.step();
+  assert.equal(a.fingerprint(), '4ea606fa');
+  const b = new Ecology({ width: 96, height: 96, seed: 'golden-96' });
+  for (let i = 0; i < 300; i++) b.step();
+  assert.equal(b.fingerprint(), '697bf953');
 });

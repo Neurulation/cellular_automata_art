@@ -19,6 +19,11 @@ page). Cell index `i = y·W + x`. Neighbourhood: Moore (8 cells).
 - **Trail** `τ_i ≥ 0`: `τ ← (τ + D·∇²τ)·(1 − e)` with the five-point
   Laplacian, `D = 0.18`, `e = 0.03`. Grazers add `4·b_eaten·G_deposit`.
 
+- **Tint** `(τx, τy)`: presentation only. Receives `d·(cos h, sin h)` where
+  `d` is the trail deposit and `h = 2π·G₄` of the depositing grazer; same
+  diffusion and evaporation as trail. Never read by behaviour, excluded from
+  `fingerprint()`. Invariant tested: `|τ⃗| ≤ τ` everywhere.
+
 ### Organisms
 At most one per cell. State: kind (grazer or hunter), energy `E > 0`, age,
 genome `G ∈ [0,1]⁵`.

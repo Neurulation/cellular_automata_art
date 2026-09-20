@@ -64,6 +64,7 @@
         <label>speed <span id="speed-v" class="mono">2×</span>
           <input type="range" id="speed" min="1" max="12" value="2">
         </label>
+        <label id="exposure-wrap" class="check"><input type="checkbox" id="exposure"> long exposure <span class="muted small">(frames linger, motion streaks)</span></label>
         <div id="life-opts" hidden>
           <label>rule <input type="text" id="life-rule" value="B3/S23" spellcheck="false"></label>
           <div class="row small" style="margin-top:6px">
@@ -105,8 +106,9 @@
           that make bad choices starve or get eaten; those that make good ones fill the grid with their descendants. That is natural
           selection, running live.</p>
           <p><b>Green-to-violet cells</b> are grazers. Their hue is a gene that does <em>nothing</em>, so it works as a family name: watch
-          patches of one colour spread as a lineage takes over, then get replaced. <b>Pale warm cells</b> are hunters. The <b>blue glow</b>
+          patches of one colour spread as a lineage takes over, then get replaced. <b>Deep red cells</b> are hunters, brightening toward orange when well fed. The <b>glow</b>
           is trail: a chemical grazers leave where they have eaten, which spreads and fades exactly like the trail in slime-mould models.
+          It takes the colour of the lineage that laid it, so a network glowing in one hue is one family's territory.
           The dim background is food, regrowing over a fixed landscape of fertile valleys and barren ridges.</p>
         </div>
         <div data-explain="life" hidden>
