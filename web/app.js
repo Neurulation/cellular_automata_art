@@ -3,7 +3,7 @@
  * loads the cycle log and experiment results. Everything that is not DOM
  * lives in ../src so it can be tested in Node.
  */
-import { WORLDS } from '../src/index.js';
+import { WORLDS, GS_PRESETS } from '../src/index.js';
 import { makeStepClock, sliderToRate, rateToSlider } from '../src/clock.js';
 import { lineChart, intervalChart, heatmap, legend, fmtNum } from './charts.js';
 
@@ -29,6 +29,7 @@ const state = {
   fps: 0,
   lifeRule: 'B3/S23',
   elementaryRule: 30,
+  preset: 'spots',
   exposure: false,
 };
 window.perpetual = state; // for debugging and reproducible screenshots
@@ -53,6 +54,10 @@ function readHash() {
       const [rule, seed] = opt.split(':');
       state.elementaryRule = +rule & 255;
       if (seed) state.seed = seed;
+    } else if (kind === 'grayscott' && /^[a-z]+(:|$)/.test(opt)) {
+      const [preset, seed] = opt.split(':');
+      if (GS_PRESETS[preset]) state.preset = preset;
+      if (seed) state.seed = seed;
     } else state.seed = opt;
   }
 }
@@ -61,6 +66,7 @@ function writeHash() {
   let s = state.kind;
   if (state.kind === 'life') s += `/${state.lifeRule}:${state.seed}`;
   else if (state.kind === 'elementary') s += `/${state.elementaryRule}:${state.seed}`;
+  else if (state.kind === 'grayscott') s += `/${state.preset}:${state.seed}`;
   else s += `/${state.seed}`;
   history.replaceState(null, '', `#${encodeURIComponent(s).replace(/%2F/g, '/').replace(/%3A/g, ':')}`);
 }
@@ -78,6 +84,7 @@ function makeWorld() {
   let w;
   if (state.kind === 'ecology') w = WORLDS.ecology.create({ width: size, height: size, seed: state.seed });
   else if (state.kind === 'life') w = WORLDS.life.create({ width: size, height: size, seed: state.seed, rule: state.lifeRule });
+  else if (state.kind === 'grayscott') w = WORLDS.grayscott.create({ width: size, height: size, seed: state.seed, preset: state.preset });
   else w = WORLDS.elementary.create({ width: 320, height: 200, seed: state.seed, rule: state.elementaryRule, init: 'single' });
   state.world = w;
   off.width = w.width;
@@ -111,7 +118,7 @@ function draw() {
   offCtx.putImageData(image, 0, 0);
   ctx.imageSmoothingEnabled = false;
   // long exposure: let the previous frame linger so motion leaves streaks
-  ctx.globalAlpha = state.exposure && state.kind === 'ecology' ? 0.28 : 1;
+  ctx.globalAlpha = state.exposure && (state.kind === 'ecology' || state.kind === 'grayscott') ? 0.28 : 1;
   ctx.drawImage(off, 0, 0, canvas.width, canvas.height);
   ctx.globalAlpha = 1;
 }
@@ -189,6 +196,12 @@ function updateReadout() {
       )
       .join('');
     $('#genes-wrap').hidden = false;
+  } else if (kind === 'grayscott') {
+    ro.innerHTML = `
+      <div><div class="k">Preset</div><div class="v">${GS_PRESETS[state.preset].name}</div></div>
+      <div><div class="k">f · k</div><div class="v">${s.f} · ${s.k}</div></div>
+      <div><div class="k">mean V</div><div class="v">${s.meanV.toFixed(3)}</div></div>`;
+    $('#genes-wrap').hidden = true;
   } else if (kind === 'life') {
     ro.innerHTML = `
       <div><div class="k">Population</div><div class="v">${s.population}</div></div>
@@ -217,6 +230,8 @@ function drawLive() {
     ];
   } else if (state.kind === 'life') {
     series = [{ name: 'population', color: COLORS.grazer, xs, ys: history_.map((s) => s.population) }];
+  } else if (state.kind === 'grayscott') {
+    series = [{ name: 'mean V', color: COLORS.grazer, xs, ys: history_.map((s) => s.meanV) }];
   } else {
     series = [{ name: 'density', color: COLORS.grazer, xs, ys: history_.map((s) => s.density) }];
   }
@@ -234,11 +249,13 @@ function syncControls() {
   $('#speed-v').textContent = `${state.rate} steps/s`;
   $('#life-opts').hidden = state.kind !== 'life';
   $('#elementary-opts').hidden = state.kind !== 'elementary';
+  $('#grayscott-opts').hidden = state.kind !== 'grayscott';
+  document.querySelectorAll('[data-preset]').forEach((b) => b.classList.toggle('active', b.dataset.preset === state.preset));
   $('#life-rule').value = state.lifeRule;
   $('#elementary-rule').value = state.elementaryRule;
   $('#world-tagline').textContent = WORLDS[state.kind].tagline;
   $('#exposure').checked = state.exposure;
-  $('#exposure-wrap').hidden = state.kind !== 'ecology';
+  $('#exposure-wrap').hidden = state.kind !== 'ecology' && state.kind !== 'grayscott';
   document.querySelectorAll('[data-explain]').forEach((n) => (n.hidden = n.dataset.explain !== state.kind));
 }
 
@@ -287,6 +304,12 @@ $('#elementary-rule').addEventListener('change', (e) => {
   state.elementaryRule = Math.max(0, Math.min(255, +e.target.value | 0));
   makeWorld();
 });
+document.querySelectorAll('[data-preset]').forEach((b) =>
+  b.addEventListener('click', () => {
+    state.preset = b.dataset.preset;
+    makeWorld();
+  }),
+);
 document.querySelectorAll('[data-rate]').forEach((b) =>
   b.addEventListener('click', () => {
     state.rate = +b.dataset.rate;
@@ -328,6 +351,13 @@ canvas.addEventListener('click', (ev) => {
       }
   } else if (state.kind === 'life') {
     for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) if (Math.random() < 0.5) w.set(x + dx, y + dy, 1);
+  } else if (state.kind === 'grayscott') {
+    for (let dy = -3; dy <= 3; dy++)
+      for (let dx = -3; dx <= 3; dx++) {
+        const i = ((y + dy + w.height) % w.height) * w.width + ((x + dx + w.width) % w.width);
+        w.U[i] = 0.5;
+        w.V[i] = 0.25;
+      }
   }
   draw();
 });
@@ -503,8 +533,8 @@ function renderSweep(r) {
       const c = cellAt(fg, hc);
       if (!c) return null;
       const lf = c.lagFraction;
-      return { value: lf ? lf.mean / 0.5 : null, text: lf ? `${(lf.mean * 100).toFixed(0)}%` : '–', muted: !c.eligible, tip: tipFor(c) };
-    }, { title: 'Hunter lag as a fraction of the cycle period', xLabel: 'hunter metabolic cost per step', yLabel: 'food regrowth rate', hue: 210 }),
+      return { value: lf ? lf.mean : null, text: lf ? `${(lf.mean * 100).toFixed(1)}%` : '–', muted: !c.eligible, tip: tipFor(c) };
+    }, { title: 'Hunter lag as a fraction of the cycle period (band 20–30%)', xLabel: 'hunter metabolic cost per step', yLabel: 'food regrowth rate', hue: 210, domain: [0.2, 0.3] }),
   );
   charts.append(
     heatmap(rows, cols, (fg, hc) => {
