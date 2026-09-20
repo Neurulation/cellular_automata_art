@@ -38,5 +38,15 @@
     "summary": "Second round of the same feedback. The speed range now reaches down to 0.5 steps per second, the default drops to 6, and four presets name what each speed is for: watch one hunt, follow a lineage, see the cycles, evolve fast.",
     "learned": "GitHub Pages caches for ten minutes, so a person can look at a freshly deployed fix and see the old page. The build pill under the title exists for exactly this, but nobody knows to read it; the presets make the intended speed legible without it.",
     "next": "Time course of selection (#5, PR #8) resumes as cycle 4."
+  },
+  {
+    "cycle": 4,
+    "title": "The time course of selection",
+    "date": "2026-09-20",
+    "issue": 5,
+    "pr": 8,
+    "summary": "Experiment 2 now records population-mean genes every 10 steps in both arms and reports, per gene, when the selection and neutral arms part for good (separation step) and how fast the gap opens (halfway step). Ten small ribbon charts on the page show it. End-state verdict unchanged and still supported.",
+    "learned": "The separation step is dominated by how narrow the confidence bands are, not by how big the effect is: with 20 paired runs the grazer reproduction threshold separates at the very first sample. The halfway step is the better speed measure, and it only makes sense for genes that separate at all, which I got wrong on the first pass and fixed before running the full set.",
+    "next": "Parameter sweep for the predator-prey lag (#4); a fourth world (#6); page copy that points readers at the build pill."
   }
 ]

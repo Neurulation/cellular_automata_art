@@ -104,7 +104,9 @@ function timecourse(kind) {
     // separation step, does not shrink just because the CIs are narrow.
     const finalGap = Math.abs(sel.mean.at(-1) - neu.mean.at(-1));
     let half = null;
-    if (finalGap > 0.02) {
+    // only meaningful for genes whose arms actually separate; for the rest
+    // the "final gap" is drift noise and a halfway point would be fiction
+    if (idx >= 0 && finalGap > 0.02) {
       for (let k = 0; k < sampleSteps.length; k++) {
         if (Math.abs(sel.mean[k] - neu.mean[k]) >= finalGap / 2) {
           half = sampleSteps[k];
