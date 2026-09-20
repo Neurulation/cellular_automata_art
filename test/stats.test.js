@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mean, sd, median, ci95, crossCorrelation, peakLag, permutationTest, cohensD, signTest, tCritical95, dominantPeriod, autocorrelation } from '../src/stats.js';
+import { mean, sd, median, ci95, crossCorrelation, peakLag, permutationTest, cohensD, signTest, tCritical95, dominantPeriod, autocorrelation, separationIndex } from '../src/stats.js';
 import { makeRng } from '../src/rng.js';
 
 test('mean, sd, median on known values', () => {
@@ -61,4 +61,16 @@ test('dominantPeriod recovers the period of a sine and rejects noise', () => {
   const p = dominantPeriod(noise, 100);
   // white noise has no clear period: either NaN or a weak, arbitrary peak
   assert.ok(Number.isNaN(p) || autocorrelation(noise, 100)[p] < 0.3);
+});
+
+test('separationIndex finds the first lasting separation and rejects rejoining', () => {
+  const band = (lo, hi) => ({ lo, hi });
+  const a = [band(0, 1), band(0, 1), band(0, 1), band(0, 1)];
+  const b = [band(0.5, 1.5), band(1.2, 2), band(1.1, 2), band(1.5, 2)];
+  assert.equal(separationIndex(a, b), 1);
+  const rejoin = [band(0.5, 1.5), band(1.2, 2), band(0.9, 2), band(1.5, 2)];
+  assert.equal(separationIndex(a, rejoin), 3);
+  const never = [band(0.5, 1.5), band(0.5, 1.5), band(0.5, 1.5), band(0.5, 1.5)];
+  assert.equal(separationIndex(a, never), -1);
+  assert.equal(separationIndex([band(0, 1)], [band(2, 3)]), 0);
 });

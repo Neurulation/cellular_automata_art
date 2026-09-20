@@ -97,6 +97,15 @@ export function lineChart(series, opts = {}) {
   if (opts.title) svg.append(el('text', { x: m.left, y: 16, class: 'title' }, [opts.title]));
 
   for (const s of series) {
+    if (s.lo && s.hi) {
+      // confidence ribbon: forward along hi, back along lo
+      let a = '';
+      for (let i = 0; i < s.xs.length; i++) if (Number.isFinite(s.hi[i])) a += `${a ? 'L' : 'M'}${x(s.xs[i]).toFixed(1)},${y(s.hi[i]).toFixed(1)}`;
+      for (let i = s.xs.length - 1; i >= 0; i--) if (Number.isFinite(s.lo[i])) a += `L${x(s.xs[i]).toFixed(1)},${y(s.lo[i]).toFixed(1)}`;
+      svg.append(el('path', { d: a + 'Z', fill: s.color, 'fill-opacity': 0.18, stroke: 'none' }));
+    }
+  }
+  for (const s of series) {
     let d = '';
     for (let i = 0; i < s.xs.length; i++) {
       if (!Number.isFinite(s.ys[i])) continue;

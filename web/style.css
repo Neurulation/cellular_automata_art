@@ -177,6 +177,9 @@ table.genes-table tr:not(.sig) td { color: var(--text-3); }
   padding: 6px 9px; border-radius: 6px; font-family: var(--mono); font-size: 0.75rem; color: var(--text); display: none;
 }
 
+.timecourse { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 16px; }
+.multiples { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin-bottom: 8px; }
+
 /* code */
 .files { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
 .file { background: var(--bg-2); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; font-size: 0.9rem; }
