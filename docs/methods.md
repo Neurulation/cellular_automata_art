@@ -106,8 +106,14 @@ criteria written in the script header, not chosen after looking.
   of population means, Cohen's d, permutation p (10 000 shuffles).
 - **Criteria**: supported if the marker gene is not significant at
   `α = 0.01` and at least two grazer behavioural genes are.
-- **Known limitation**: end-of-run snapshot; the time course of divergence
-  is not yet measured.
+- **Time course** (cycle 3): population-mean genes sampled every 10 steps
+  in both arms; per gene, mean and 95% CI across runs per sample. Two
+  speed-of-selection statistics: the *separation step* (first sample from
+  which the arms' CIs never overlap again; sensitive to CI width) and the
+  *halfway step* (first sample at which the gap between arm means reaches
+  half its final value; not). Pre-registered before the first full run: the
+  grazer reproduction threshold is among the earliest genes to separate, and
+  the neutral marker never separates. Ties are reported, not broken.
 
 ## 4. Timing on the page
 

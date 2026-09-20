@@ -492,6 +492,57 @@ function renderSelection(r) {
   charts.append(intervalChart(toRows(r.grazer), groups, { title: 'Grazer genes after evolution (mean, 95% CI)', xLabel: 'gene value' }));
   charts.append(intervalChart(toRows(r.hunter), groups, { title: 'Hunter genes after evolution (mean, 95% CI)', xLabel: 'gene value' }));
   charts.append(legend(groups));
+  if (r.timecourse) renderTimecourse(r, groups);
+}
+
+function renderTimecourse(r, groups) {
+  const tc = r.timecourse;
+  const host = $('#exp-sel');
+  const wrap = document.createElement('div');
+  wrap.className = 'timecourse';
+  const checks = r.timecourseChecks ?? {};
+  const fastest = (kind) =>
+    tc[kind]
+      .filter((g) => g.halfwayStep !== null)
+      .sort((a, b) => a.halfwayStep - b.halfwayStep)
+      .map((g) => `${g.name} (${g.halfwayStep})`)
+      .join(', ');
+  wrap.innerHTML = `
+    <h3 style="margin-top:8px">When does selection act?</h3>
+    <p><b>Plain version.</b> The same experiment, watched over time instead of judged at the end. Each small chart is one gene: the blue band is the
+    population under selection, the yellow band the population with genes switched off, both as mean ± 95% CI over ${r.params.runs} runs
+    sampled every ${tc.sampleEvery} steps. Where the bands part and stay apart, selection has done something drift could not.</p>
+    <p class="small muted">Halfway step (steps until the gap between arms reaches half its final size), grazers: ${esc(fastest('grazer')) || 'none'}.
+    Hunters: ${esc(fastest('hunter')) || 'none'}.
+    Neutral marker never separates in either species: <b>${checks.markerNeverSeparates ? 'yes' : 'NO'}</b>.
+    Pre-registered expectation that the grazer reproduction threshold is among the first to separate: <b>${checks.expectationMet ? 'met' : 'not met'}</b>${checks.earliestGrazerGenes ? ` (earliest: ${esc(checks.earliestGrazerGenes.join(', '))} at step ${checks.earliestGrazerStep})` : ''}.</p>
+    <div class="multiples" id="tc-grazer"></div>
+    <div class="multiples" id="tc-hunter"></div>`;
+  host.append(wrap);
+  for (const kind of ['grazer', 'hunter']) {
+    const grid = wrap.querySelector(`#tc-${kind}`);
+    for (const g of tc[kind]) {
+      const series = [
+        { name: 'selection', color: groups[0].color, xs: tc.steps, ys: g.selection.mean, lo: g.selection.lo, hi: g.selection.hi },
+        { name: 'neutral', color: groups[1].color, xs: tc.steps, ys: g.neutral.mean, lo: g.neutral.lo, hi: g.neutral.hi },
+      ];
+      const markers = g.separationStep !== null ? [{ x: g.separationStep, label: `apart from ${g.separationStep}` }] : [];
+      const cell = document.createElement('div');
+      cell.append(
+        lineChart(series, {
+          width: 300,
+          height: 170,
+          title: `${kind} · ${g.name}`,
+          xLabel: 'step',
+          yDomain: [0, 1],
+          markers,
+          yFormat: (v) => v.toFixed(2),
+        }),
+      );
+      grid.append(cell);
+    }
+  }
+  wrap.append(legend(groups));
 }
 
 function esc(s) {

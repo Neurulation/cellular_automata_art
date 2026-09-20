@@ -17,7 +17,12 @@ export function quick() {
 export function writeResult(name, data) {
   mkdirSync(RESULTS_DIR, { recursive: true });
   const path = join(RESULTS_DIR, `${name}.json`);
-  writeFileSync(path, JSON.stringify(data, null, 2) + '\n');
+  // pretty-print objects, but keep arrays of numbers on one line so long
+  // time series do not become one number per line
+  const text = JSON.stringify(data, null, 2).replace(/\[\s*((?:(?:-?\d[\d.e+-]*|null|NaN|true|false)\s*,?\s*)+)\]/g, (_, inner) =>
+    `[${inner.trim().split(/\s*,\s*/).join(', ')}]`,
+  );
+  writeFileSync(path, text + '\n');
   return path;
 }
 
