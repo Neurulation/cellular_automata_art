@@ -22,7 +22,7 @@ const state = {
   kind: 'ecology',
   seed: randomSeed(),
   running: true,
-  rate: 10, // world steps per second, independent of the display refresh rate
+  rate: 6, // world steps per second, independent of the display refresh rate
   measuredRate: 0,
   world: null,
   frame: 0,
@@ -287,6 +287,12 @@ $('#elementary-rule').addEventListener('change', (e) => {
   state.elementaryRule = Math.max(0, Math.min(255, +e.target.value | 0));
   makeWorld();
 });
+document.querySelectorAll('[data-rate]').forEach((b) =>
+  b.addEventListener('click', () => {
+    state.rate = +b.dataset.rate;
+    syncControls();
+  }),
+);
 document.querySelectorAll('[data-rule]').forEach((b) =>
   b.addEventListener('click', () => {
     if (state.kind === 'life') state.lifeRule = b.dataset.rule;

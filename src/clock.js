@@ -35,10 +35,18 @@ export function makeStepClock({ rate = 10, maxStepsPerCall = 60, maxDt = 0.25 } 
   return clock;
 }
 
-/** Logarithmic slider mapping: position 0..100 ↔ 1..max steps per second. */
-export function sliderToRate(v, max = 240) {
-  return Math.round(max ** (Math.max(0, Math.min(100, v)) / 100));
+/**
+ * Logarithmic slider mapping: position 0..100 ↔ min..max steps per second.
+ * Rates below 10 keep one decimal so the slow end is usable (0.5, 0.7, 1.2 …);
+ * above 10 they are whole numbers.
+ */
+export const RATE_MIN = 0.5;
+export const RATE_MAX = 240;
+export function sliderToRate(v, min = RATE_MIN, max = RATE_MAX) {
+  const r = min * (max / min) ** (Math.max(0, Math.min(100, v)) / 100);
+  return r < 10 ? Math.round(r * 10) / 10 : Math.round(r);
 }
-export function rateToSlider(rate, max = 240) {
-  return Math.round((100 * Math.log(Math.max(1, rate))) / Math.log(max));
+export function rateToSlider(rate, min = RATE_MIN, max = RATE_MAX) {
+  const r = Math.max(min, Math.min(max, rate));
+  return Math.round((100 * Math.log(r / min)) / Math.log(max / min));
 }

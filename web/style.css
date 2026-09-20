@@ -102,6 +102,8 @@ button {
 button:hover { border-color: var(--text-3); }
 button.primary { background: var(--accent); color: #062018; border-color: transparent; font-weight: 600; }
 button.primary:hover { filter: brightness(1.08); }
+.presets button { font-size: 0.78rem; padding: 5px 9px; }
+.presets button.active { border-color: var(--accent); color: var(--accent); }
 .tabs { display: flex; gap: 4px; background: var(--bg-3); padding: 4px; border-radius: 8px; }
 .tabs button { flex: 1; border: none; background: transparent; color: var(--text-2); padding: 6px 8px; }
 .tabs button.active { background: var(--bg-2); color: var(--text); box-shadow: 0 1px 0 var(--line); }

@@ -28,5 +28,15 @@
     "summary": "First human feedback on the deployed page: far too fast, and tied to the monitor's refresh rate. Speed is now an explicit steps-per-second rate driven by a tested fixed-timestep clock, default 10 steps/s, with a log slider from 1 to 240 and the measured rate in the readout.",
     "learned": "I had verified the page by looking at it, and I did not notice the speed because I was checking that things rendered, not whether a person could follow them. A viewer's question is different from a builder's. Also: the planned cycle (gene time course, #5) was parked the moment the feedback arrived; the loop should always let a human observation jump the queue.",
     "next": "Resume #5 (time course of selection) as cycle 3. Consider a 'slow' preset of 2 steps/s for watching individual hunts."
+  },
+  {
+    "cycle": 3,
+    "title": "Slower still: a wider speed range and presets",
+    "date": "2026-09-20",
+    "issue": 9,
+    "pr": null,
+    "summary": "Second round of the same feedback. The speed range now reaches down to 0.5 steps per second, the default drops to 6, and four presets name what each speed is for: watch one hunt, follow a lineage, see the cycles, evolve fast.",
+    "learned": "GitHub Pages caches for ten minutes, so a person can look at a freshly deployed fix and see the old page. The build pill under the title exists for exactly this, but nobody knows to read it; the presets make the intended speed legible without it.",
+    "next": "Time course of selection (#5, PR #8) resumes as cycle 4."
   }
 ]
