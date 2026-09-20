@@ -47,9 +47,23 @@ test('rate can change on the fly and reset clears the remainder', () => {
   assert.equal(c.advance(NaN), 0);
 });
 
-test('slider mapping is a log scale from 1 to 240 and round-trips', () => {
-  assert.equal(sliderToRate(0), 1);
+test('slider mapping is a log scale from 0.5 to 240 and round-trips', () => {
+  assert.equal(sliderToRate(0), 0.5);
   assert.equal(sliderToRate(100), 240);
-  assert.equal(sliderToRate(42), 10);
-  for (const r of [1, 2, 5, 10, 30, 60, 120, 240]) assert.ok(Math.abs(sliderToRate(rateToSlider(r)) - r) <= Math.max(1, r * 0.05));
+  assert.ok(sliderToRate(50) > 10 && sliderToRate(50) < 12); // geometric midpoint ≈ 11
+  for (const r of [0.5, 1, 2, 6, 10, 30, 60, 120, 240]) {
+    const back = sliderToRate(rateToSlider(r));
+    assert.ok(Math.abs(back - r) <= Math.max(0.1, r * 0.06), `${r} -> ${back}`);
+  }
+});
+
+test('sub-1 rates step less than once per second', () => {
+  const c = makeStepClock({ rate: 0.5 });
+  let steps = 0;
+  for (let i = 0; i < 60; i++) steps += c.advance(1 / 60); // one second: 0.5 steps
+  assert.equal(steps, 0);
+  for (let i = 0; i < 66; i++) steps += c.advance(1 / 60); // 2.1 seconds: 1.05 steps
+  assert.equal(steps, 1);
+  for (let i = 0; i < 114; i++) steps += c.advance(1 / 60); // 4.0 seconds: ~2 steps (float slack)
+  assert.ok(steps === 1 || steps === 2);
 });

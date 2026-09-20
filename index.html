@@ -61,9 +61,15 @@
         <label>seed <span class="muted small">(same seed, same world, always)</span>
           <input type="text" id="seed" spellcheck="false">
         </label>
-        <label>speed <span id="speed-v" class="mono">10 steps/s</span> <span class="muted small">(independent of your screen's refresh rate)</span>
-          <input type="range" id="speed" min="0" max="100" value="42">
+        <label>speed <span id="speed-v" class="mono">6 steps/s</span> <span class="muted small">(world steps per second, independent of your screen)</span>
+          <input type="range" id="speed" min="0" max="100" value="40">
         </label>
+        <div class="row small presets">
+          <button data-rate="1">1 · watch one hunt</button>
+          <button data-rate="6">6 · follow a lineage</button>
+          <button data-rate="30">30 · see the cycles</button>
+          <button data-rate="120">120 · evolve fast</button>
+        </div>
         <label id="exposure-wrap" class="check"><input type="checkbox" id="exposure"> long exposure <span class="muted small">(frames linger, motion streaks)</span></label>
         <div id="life-opts" hidden>
           <label>rule <input type="text" id="life-rule" value="B3/S23" spellcheck="false"></label>
