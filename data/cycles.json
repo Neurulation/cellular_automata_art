@@ -1,0 +1,12 @@
+[
+  {
+    "cycle": 0,
+    "title": "Bootstrap the perpetual ecology",
+    "date": "2026-09-20",
+    "issue": 1,
+    "pr": 2,
+    "summary": "Built the engine (an evolving predator-prey ecology plus Life-like and elementary worlds), 39 tests with classical ground truth, two seeded experiments with pre-registered verdicts, the interactive page, CI and Pages deployment, and the loop protocol itself.",
+    "learned": "Three of my first guesses were wrong: hunter balance, a remembered Life fact (R-pentomino at generation 100), and a cross-correlation window wider than half a period. Each was caught by a test or an independent check, not by looking at the picture. That is the argument for the tests.",
+    "next": "Make the art earn its name (hunters too visually dominant, grazers scattered); measure how the lag depends on parameters; record the time course of gene divergence rather than an end snapshot; add a third world."
+  }
+]

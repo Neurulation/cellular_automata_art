@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Perpetual Ecology · cellular automata art, built by an agent in a loop</title>
+<meta name="description" content="An evolving predator-prey ecosystem on a cellular grid, built and continuously improved by an AI agent through GitHub issues, pull requests, CI and Pages. Every claim is tested.">
+<link rel="stylesheet" href="web/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230b0d12'/%3E%3Crect x='2' y='2' width='4' height='4' fill='%2319ae80'/%3E%3Crect x='10' y='2' width='4' height='4' fill='%23d95926'/%3E%3Crect x='6' y='6' width='4' height='4' fill='%2319ae80'/%3E%3Crect x='2' y='10' width='4' height='4' fill='%2319ae80'/%3E%3Crect x='10' y='10' width='4' height='4' fill='%2319ae80'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <strong>Perpetual Ecology</strong>
+      <span class="small muted mono">Neurulation / cellular_automata_art</span>
+    </div>
+    <nav>
+      <a href="#what">What</a>
+      <a href="#loop">The loop</a>
+      <a href="#science">The science</a>
+      <a href="#code">Code</a>
+      <a href="https://github.com/Neurulation/cellular_automata_art">GitHub ↗</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <span class="pill live"><span class="dot"></span>running in your browser</span>
+      <span class="pill" id="cycle-pill">cycle log loading…</span>
+      <span class="pill" id="build-pill">local build</span>
+    </div>
+    <h1>A living grid,<br>built by a machine that never stops.</h1>
+    <p class="lede">
+      Grazers follow the scent of food. Hunters follow the grazers. Every creature carries a tiny genome, and the ones that
+      eat well have children. Nothing in here was designed to be pretty, or clever: it <em>evolved</em>. And the project itself
+      evolves too. An AI agent plans, builds, tests and ships each improvement through GitHub, in public, in a loop.
+      The art is what the loop leaves behind.
+    </p>
+
+    <div class="stage">
+      <div class="canvas-wrap">
+        <canvas id="world" aria-label="live simulation"></canvas>
+        <div class="overlay">
+          <span class="pill"><span class="dot"></span><span id="tick">0</span> steps</span>
+          <span class="pill" id="fps">—</span>
+        </div>
+      </div>
+      <aside class="panel">
+        <div class="tabs" role="tablist">
+          <button data-kind="ecology" class="active">Ecology</button>
+          <button data-kind="life">Life</button>
+          <button data-kind="elementary">Elementary</button>
+        </div>
+        <p class="small muted" id="world-tagline" style="margin:0"></p>
+        <div class="row">
+          <button id="play" class="primary">Pause</button>
+          <button id="step" title="one step (.)">Step</button>
+          <button id="reseed" title="new seed (n)">New seed</button>
+        </div>
+        <label>seed <span class="muted small">(same seed, same world, always)</span>
+          <input type="text" id="seed" spellcheck="false">
+        </label>
+        <label>speed <span id="speed-v" class="mono">2×</span>
+          <input type="range" id="speed" min="1" max="12" value="2">
+        </label>
+        <div id="life-opts" hidden>
+          <label>rule <input type="text" id="life-rule" value="B3/S23" spellcheck="false"></label>
+          <div class="row small" style="margin-top:6px">
+            <button data-rule="B3/S23">Life</button>
+            <button data-rule="B36/S23">HighLife</button>
+            <button data-rule="B3678/S34678">Day &amp; Night</button>
+            <button data-rule="B2/S">Seeds</button>
+          </div>
+        </div>
+        <div id="elementary-opts" hidden>
+          <label>rule number <input type="number" id="elementary-rule" min="0" max="255" value="30"></label>
+          <div class="row small" style="margin-top:6px">
+            <button data-rule="30">30</button>
+            <button data-rule="90">90</button>
+            <button data-rule="110">110</button>
+            <button data-rule="184">184</button>
+            <button data-rule="73">73</button>
+          </div>
+        </div>
+        <div class="readout" id="readout"></div>
+        <div id="genes-wrap">
+          <div class="small muted" style="margin-bottom:6px">population-mean genes · <span style="color:var(--series-grazer)">▌grazers</span> <span style="color:var(--series-hunter)">▌hunters</span></div>
+          <div class="genes" id="genes"></div>
+        </div>
+        <div id="live"></div>
+        <p class="small muted" style="margin:0">Click the canvas to drop grazers, shift-click for hunters. Space pauses.</p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="block" id="what">
+    <div class="two">
+      <div>
+        <div class="eyebrow">What you are looking at</div>
+        <h2>An ecosystem, not a rule</h2>
+        <div data-explain="ecology">
+          <p>Most cellular automata apply one fixed rule everywhere. This one doesn't. Each coloured cell is an organism with its own
+          small genome that decides how it moves, eats and breeds. When it breeds, the child gets a slightly mutated copy. Creatures
+          that make bad choices starve or get eaten; those that make good ones fill the grid with their descendants. That is natural
+          selection, running live.</p>
+          <p><b>Green-to-violet cells</b> are grazers. Their hue is a gene that does <em>nothing</em>, so it works as a family name: watch
+          patches of one colour spread as a lineage takes over, then get replaced. <b>Pale warm cells</b> are hunters. The <b>blue glow</b>
+          is trail: a chemical grazers leave where they have eaten, which spreads and fades exactly like the trail in slime-mould models.
+          The dim background is food, regrowing over a fixed landscape of fertile valleys and barren ridges.</p>
+        </div>
+        <div data-explain="life" hidden>
+          <p>Conway's Game of Life, and its cousins. Every cell looks at its eight neighbours and, by one rule applied everywhere at once,
+          decides whether it lives or dies. Newborn cells flash warm, long-lived cells cool towards blue. Try the rule buttons: HighLife
+          has a replicator, Day &amp; Night is symmetric between life and death, Seeds explodes.</p>
+        </div>
+        <div data-explain="elementary" hidden>
+          <p>Wolfram's elementary automata. A single row of cells, each looking only at itself and its two neighbours, evolves downward
+          through time. There are exactly 256 such rules. Rule 30 is chaotic and was once used as a random number generator; rule 90
+          draws the Sierpinski triangle; rule 110 can compute anything a computer can.</p>
+        </div>
+      </div>
+      <div>
+        <div class="eyebrow">The rigorous version</div>
+        <details open>
+          <summary>The ecology as an asynchronous cellular automaton</summary>
+          <p>A toroidal lattice with three layers: a food scalar with logistic regrowth toward a static fertility map; a trail scalar
+          obeying discrete diffusion (five-point Laplacian, coefficient 0.18) with geometric evaporation (3% per step); and an occupancy
+          layer with at most one organism per cell. Each step, every organism acts once in a freshly shuffled order (as in Dewdney's
+          Wa-Tor, 1984): pay a metabolic cost, eat, deposit, move to the best-scoring free neighbour, split if energy exceeds a
+          genetically set threshold, die at zero energy.</p>
+          <p>Genomes are five floats in [0,1] with Gaussian mutation (σ = 0.06) reflected at the boundaries. Gene 4 is
+          behaviourally inert by construction and serves as both the colour and the drift control in the experiments below. Full
+          definitions are in <a href="https://github.com/Neurulation/cellular_automata_art/blob/main/src/worlds/ecology.js">ecology.js</a>
+          and the methods note in <a href="https://github.com/Neurulation/cellular_automata_art/blob/main/docs/methods.md">docs/methods.md</a>.</p>
+        </details>
+        <details>
+          <summary>What is tested, and against what</summary>
+          <p>Determinism (same seed, same fingerprint after hundreds of steps). Invariants every step: one organism per cell, positive
+          energy, genes in range. Diffusion conserves mass with evaporation off and is symmetric. Evaporation is geometric at the
+          configured rate. Grazers starve without food; hunters starve without grazers; grazers fill the land without hunters.
+          For the classical worlds: gliders translate (1,1) every 4 generations across the torus edge, the R-pentomino stabilises at
+          generation 1103 with population 116 as LifeWiki records, rule 30's first rows match Wolfram's table, rule 90 is XOR of its
+          neighbours. The <a href="https://github.com/Neurulation/cellular_automata_art/tree/main/test">test directory</a> is the ground truth.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="loop">
+    <div class="eyebrow">The loop</div>
+    <h2>How this project builds itself</h2>
+    <div class="two">
+      <p>Every change here went through the same cycle: an issue is chosen, a branch is cut, code and tests are written, a pull
+      request is opened, continuous integration runs the tests and a quick pass of every experiment, the change is merged, the site
+      redeploys, and a retrospective is written. Then the retrospective seeds the next issues. An AI agent does all of it. A human
+      started it and can stop it. There have been <b id="cycle-count">…</b> cycles so far.</p>
+      <p class="muted">Why do it this way? Because it is the ordinary discipline of software engineering, made visible. Nothing in the
+      loop is exotic. The point is that it is <em>followed</em>, every time, by a machine, and that you can audit every step: click any
+      issue or pull request below. The protocol is written down in
+      <a href="https://github.com/Neurulation/cellular_automata_art/blob/main/LOOP.md">LOOP.md</a>.</p>
+    </div>
+    <div class="loopstats" id="loopstats"></div>
+    <div class="timeline" id="timeline"><p class="muted">loading cycle log…</p></div>
+  </section>
+
+  <section class="block" id="science">
+    <div class="eyebrow">The science</div>
+    <h2>Claims come with evidence</h2>
+    <p class="muted" style="max-width:760px">Saying "it evolves" or "it oscillates like predators and prey" is easy. Each statement below is a
+    hypothesis, a method, seeded runs anyone can repeat, and a verdict computed from the numbers, not from looking at the picture.
+    Results are regenerated whenever the simulation changes.</p>
+    <div class="experiment" id="exp-lag"><p class="muted">loading…</p></div>
+    <div class="experiment" id="exp-sel"><p class="muted">loading…</p></div>
+  </section>
+
+  <section class="block" id="code">
+    <div class="eyebrow">Under the hood</div>
+    <h2>Small on purpose</h2>
+    <p class="muted" style="max-width:760px">Plain JavaScript modules, no build step, no dependencies. The same code runs in this page, in the test
+    suite and in the experiments. Everything is at
+    <a href="https://github.com/Neurulation/cellular_automata_art">github.com/Neurulation/cellular_automata_art</a>.</p>
+    <div class="files">
+      <div class="file"><code>src/worlds/ecology.js</code><br><span class="muted small">the evolving ecosystem</span></div>
+      <div class="file"><code>src/worlds/life.js</code> · <code>elementary.js</code><br><span class="muted small">the classical automata</span></div>
+      <div class="file"><code>src/stats.js</code><br><span class="muted small">CIs, cross-correlation, permutation and sign tests</span></div>
+      <div class="file"><code>test/</code><br><span class="muted small">unit, property and ground-truth tests, run by CI</span></div>
+      <div class="file"><code>experiments/</code><br><span class="muted small">seeded experiments that write the results shown above</span></div>
+      <div class="file"><code>LOOP.md</code> · <code>data/cycles.json</code><br><span class="muted small">the protocol and its log</span></div>
+    </div>
+  </section>
+
+  <footer>
+    Built by Claude (Anthropic) running Claude Code, kicked off by a human at Neurulation. MIT licensed.
+    Colours for charts follow a colour-vision-checked palette. No trackers, no cookies, no build step.
+  </footer>
+</div>
+<script type="module" src="web/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "cellular-automata-art",
+  "version": "0.1.0",
+  "description": "A perpetual, agent-driven art project: an evolving predator-prey ecology on a cellular grid, built entirely through GitHub.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test",
+    "experiments": "node experiments/run_all.js",
+    "serve": "python3 -m http.server 8000"
+  },
+  "engines": { "node": ">=20" },
+  "license": "MIT"
+}
