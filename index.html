@@ -51,6 +51,7 @@
           <button data-kind="ecology" class="active">Ecology</button>
           <button data-kind="life">Life</button>
           <button data-kind="elementary">Elementary</button>
+          <button data-kind="grayscott">Reaction</button>
         </div>
         <p class="small muted" id="world-tagline" style="margin:0"></p>
         <div class="row">
@@ -90,6 +91,16 @@
             <button data-rule="73">73</button>
           </div>
         </div>
+        <div id="grayscott-opts" hidden>
+          <div class="small muted" style="margin-bottom:6px">Pearson's regimes</div>
+          <div class="row small">
+            <button data-preset="spots">Spots</button>
+            <button data-preset="mitosis">Mitosis</button>
+            <button data-preset="coral">Coral</button>
+            <button data-preset="worms">Worms</button>
+            <button data-preset="waves">Waves</button>
+          </div>
+        </div>
         <div class="readout" id="readout"></div>
         <div id="genes-wrap">
           <div class="small muted" style="margin-bottom:6px">population-mean genes · <span style="color:var(--series-grazer)">▌grazers</span> <span style="color:var(--series-hunter)">▌hunters</span></div>
@@ -121,6 +132,12 @@
           <p>Conway's Game of Life, and its cousins. Every cell looks at its eight neighbours and, by one rule applied everywhere at once,
           decides whether it lives or dies. Newborn cells flash warm, long-lived cells cool towards blue. Try the rule buttons: HighLife
           has a replicator, Day &amp; Night is symmetric between life and death, Seeds explodes.</p>
+        </div>
+        <div data-explain="grayscott" hidden>
+          <p>Two chemicals soaking through a sheet. One is fed in steadily and turned into the other by a reaction that needs two of the second
+          to make a third; the second decays away. Both spread, one faster than the other. That is all, and yet depending on two numbers you
+          get spots that split like dividing cells, coral-like mazes, wriggling worms, or travelling waves. John Pearson mapped these regimes in
+          1993; the buttons are his coordinates. Click the canvas to seed a new patch.</p>
         </div>
         <div data-explain="elementary" hidden>
           <p>Wolfram's elementary automata. A single row of cells, each looking only at itself and its two neighbours, evolves downward

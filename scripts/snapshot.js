@@ -2,6 +2,7 @@
  * Render a world to a PNG from Node, with no dependencies.
  *
  *   node scripts/snapshot.js --world ecology --seed portrait-1 --steps 900 --size 160 --scale 4 --out docs/img/x.png
+ *   node scripts/snapshot.js --world grayscott --preset mitosis --seed 3 --steps 400 --out mitosis.png
  *
  * Because worlds are deterministic, a snapshot is a reproducible artefact:
  * the same arguments give the same bytes. Used for before/after comparisons
@@ -30,6 +31,7 @@ const out = args.out ?? `snapshot-${kind}-${seed}-${steps}.png`;
 
 const opts = { seed, width: size, height: size };
 if (kind === 'life' && args.rule) opts.rule = args.rule;
+if (kind === 'grayscott' && args.preset) opts.preset = args.preset;
 if (kind === 'elementary') {
   opts.width = size * 2;
   opts.height = size;

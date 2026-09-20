@@ -221,8 +221,10 @@ export function legend(items) {
 export function heatmap(rows, cols, cell, opts = {}) {
   const cw = opts.cellWidth ?? 84;
   const ch = opts.cellHeight ?? 48;
-  const m = { top: opts.title ? 44 : 26, right: 8, bottom: 30, left: 92 };
+  const m = { top: (opts.title ? 44 : 26) + (opts.yLabel ? 16 : 0), right: 8, bottom: 30, left: 92 };
   const W = m.left + cols.length * cw + m.right;
+  const [d0, d1] = opts.domain ?? [0, 1];
+  const norm = (v) => (v - d0) / (d1 - d0 || 1);
   const H = m.top + rows.length * ch + m.bottom;
   const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'chart', role: 'img', 'aria-label': opts.title ?? 'heatmap' });
   if (opts.title) svg.append(el('text', { x: m.left, y: 16, class: 'title' }, [opts.title]));
@@ -233,7 +235,7 @@ export function heatmap(rows, cols, cell, opts = {}) {
   svg.append(defs);
   cols.forEach((c, j) => svg.append(el('text', { x: m.left + j * cw + cw / 2, y: m.top - 8, 'text-anchor': 'middle' }, [c.label])));
   if (opts.xLabel) svg.append(el('text', { x: m.left + (cols.length * cw) / 2, y: H - 6, 'text-anchor': 'middle' }, [opts.xLabel]));
-  if (opts.yLabel) svg.append(el('text', { x: 8, y: m.top - 8, 'text-anchor': 'start' }, [opts.yLabel]));
+  if (opts.yLabel) svg.append(el('text', { x: 8, y: m.top - 26, 'text-anchor': 'start' }, [opts.yLabel + ' ↓']));
   rows.forEach((r, i) => {
     svg.append(el('text', { x: m.left - 8, y: m.top + i * ch + ch / 2 + 4, 'text-anchor': 'end' }, [r.label]));
     cols.forEach((c, j) => {
@@ -241,7 +243,7 @@ export function heatmap(rows, cols, cell, opts = {}) {
       const g = el('g');
       const x = m.left + j * cw + 1;
       const y = m.top + i * ch + 1;
-      const v = Number.isFinite(d.value) ? Math.max(0, Math.min(1, d.value)) : null;
+      const v = Number.isFinite(d.value) ? Math.max(0, Math.min(1, norm(d.value))) : null;
       const fill = d.muted || v === null ? 'url(#hatch)' : seqColor(v, opts.hue ?? 210);
       g.append(el('rect', { x, y, width: cw - 2, height: ch - 2, rx: 4, fill }));
       if (d.text) {

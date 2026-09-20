@@ -21,17 +21,25 @@ behind.
   watch lineages spread and die.
 - **Life-like** rules (Conway's Life, HighLife, Day & Night, Seeds).
 - **Elementary** rules (Wolfram's 256 one-dimensional automata).
+- **Reaction**: Gray-Scott reaction-diffusion with Pearson's five regimes
+  (spots, mitosis, coral, worms, waves). Continuous state, same `World`
+  interface, closed-form ground truth in the tests.
 - **The loop**: a timeline of every cycle the agent has run, with links to
   the issue and pull request for each.
 - **The science**: two experiments with seeded runs, confidence intervals
   and verdicts computed from pre-registered criteria.
 
-## Two claims, tested
+## Three claims, tested
 
 | claim | evidence | verdict |
 |-------|----------|---------|
 | Hunter numbers lag grazer numbers by about a quarter cycle, as Lotka-Volterra predicts | 24 seeds, peak cross-correlation lag ≈ 29 steps of a ≈ 111-step period (26%); positive in 24/24 runs | supported |
-| Genes change by selection, not just drift | 20 paired seeds, selection arm vs neutral arm; behavioural genes differ (p < 0.0001, Cohen's d 3–5), the inert marker gene does not | supported |
+| Genes change by selection, not just drift | 20 paired seeds, selection arm vs neutral arm; behavioural genes differ (p < 0.0001, Cohen's d 3–5), the inert marker gene does not; time course shows grazer traits move within ~100 steps, hunter traits within several hundred | supported |
+| The quarter-period lag is a property of the model, not of one tuning | 4 × 4 sweep over hunter cost and food growth, 8 seeds per cell; all 14 persisting cells inside the pre-registered band; pooled 26.2% [25.8%, 26.6%] | supported |
+
+The pooled interval excludes exactly 25%. That is logged as an open
+hypothesis ([#14](https://github.com/Neurulation/cellular_automata_art/issues/14)),
+not explained away.
 
 Exact numbers and CIs are in [`experiments/results/`](experiments/results/) and
 rendered on the page. Definitions are in [`docs/methods.md`](docs/methods.md).
@@ -48,8 +56,8 @@ are the plan; closed pull requests are the history.
 No dependencies. Node 20 or newer.
 
 ```bash
-npm test                          # 39 tests, about 2 seconds
-node experiments/run_all.js       # regenerate results, about a minute
+npm test                          # 56 tests, about 3 seconds
+node experiments/run_all.js       # regenerate results, about three minutes
 python3 -m http.server 8000       # open http://localhost:8000
 node scripts/snapshot.js --seed portrait-1 --steps 900 --out portrait.png   # reproducible render
 ```

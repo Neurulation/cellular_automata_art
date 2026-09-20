@@ -64,6 +64,29 @@ reference genome) while stored genomes are still inherited and mutated. This
 removes selection on genes without changing anything else in the dynamics,
 which is what makes the paired comparison in Experiment 2 fair.
 
+## 1b. Gray-Scott reaction-diffusion
+
+Two fields `U, V` on the torus, explicit Euler, five-point Laplacian, eight
+substeps per world step:
+
+```
+U += Du ∇²U − U V² + f (1 − U)
+V += Dv ∇²V + U V² − (f + k) V        Du = 0.21, Dv = 0.105
+```
+
+`Du, Dv` are Pearson's (1993) coefficients (2·10⁻⁵, 10⁻⁵) expressed for
+unit time step on his grid spacing; 0.21 < 0.25 satisfies the explicit
+stability bound in 2D. Presets `(f, k)`: spots (0.030, 0.062), mitosis
+(0.028, 0.062), coral (0.055, 0.062), worms (0.078, 0.061), waves
+(0.014, 0.045). Seeding: 12 small random squares of `(U, V) = (0.5, 0.25)`
+in the `(1, 0)` medium.
+
+Tested ground truth: `(1, 0)` is an exact fixed point; with `f = k = 0`,
+`Σ(U + V)` is conserved (the reaction only converts); a uniform small `V`
+on `U = 1` decays as `(1 − (f + k))` per substep to first order;
+mirror-symmetric data stays mirror-symmetric; the spots regime forms a
+spatially structured pattern from random seeds.
+
 ## 2. Statistics
 
 All in `src/stats.js`, all unit tested against hand calculations.

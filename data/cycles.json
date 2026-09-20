@@ -58,5 +58,15 @@
     "summary": "Experiment 3 turns two knobs, hunter metabolic cost and food regrowth, through a 4 by 4 grid with 8 seeds per cell. In all 14 cells where both species persisted, the hunter lag sits in the predicted quarter-period band; pooled, 26.2% of a cycle with a 95% CI of 25.8 to 26.6. Two cheap-hunter, rich-food cells mostly went extinct and are shown hatched.",
     "learned": "The lag is robust, and it is also consistently a little above a quarter. The CI excludes 25% exactly, which the pre-registered band was too wide to notice. A real deviation from the textbook model, probably from logistic prey growth and discrete space, and a hypothesis worth its own experiment rather than a footnote.",
     "next": "Write the 26% finding up as a hypothesis issue; fourth world (#6); hunter density rendering."
+  },
+  {
+    "cycle": 6,
+    "title": "A fourth world: Gray-Scott reaction-diffusion",
+    "date": "2026-09-20",
+    "issue": 6,
+    "pr": 15,
+    "summary": "Continuous-state chemistry joins the discrete worlds: two fields, one autocatalytic reaction, Pearson's five regimes as presets. Six tests pin it to closed-form ground truth (exact fixed point, mass conservation, linear decay rate, stencil symmetry) before anyone judges it by eye. Same World interface, so the page, the clock and the snapshot tool needed only wiring.",
+    "learned": "My first linear-decay test used a perturbation too large for first-order theory and failed by one percent; the fix was to shrink the perturbation, not to loosen the tolerance. The heatmap from cycle 5 also needed a value domain: mapping 25 to 28 percent onto a 0 to 50 percent ramp hid the very differences the chart existed to show.",
+    "next": "Hunter density rendering; the 26% hypothesis (#14); a portrait gallery of seeds worth keeping."
   }
 ]
