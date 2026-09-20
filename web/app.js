@@ -4,6 +4,7 @@
  * lives in ../src so it can be tested in Node.
  */
 import { WORLDS } from '../src/index.js';
+import { makeStepClock, sliderToRate, rateToSlider } from '../src/clock.js';
 import { lineChart, intervalChart, legend, fmtNum } from './charts.js';
 
 const REPO = 'Neurulation/cellular_automata_art';
@@ -21,7 +22,8 @@ const state = {
   kind: 'ecology',
   seed: randomSeed(),
   running: true,
-  speed: 2,
+  rate: 10, // world steps per second, independent of the display refresh rate
+  measuredRate: 0,
   world: null,
   frame: 0,
   fps: 0,
@@ -114,37 +116,63 @@ function draw() {
   ctx.globalAlpha = 1;
 }
 
+/**
+ * Fixed-timestep loop (see src/clock.js). The world advances by
+ * (elapsed seconds × rate) steps per frame, so it runs at the same speed on
+ * a 60 Hz and a 144 Hz display.
+ */
+const clock = makeStepClock({ rate: state.rate });
 let history_ = [];
 let lastT = performance.now();
+let lastFrame = performance.now();
 let frames = 0;
+let stepsSince = 0;
 function loop(t) {
+  const dt = (t - lastFrame) / 1000;
+  lastFrame = t;
   if (state.running) {
-    for (let i = 0; i < state.speed; i++) state.world.step();
-    draw();
-    recordLive();
+    clock.rate = state.rate;
+    const n = clock.advance(dt);
+    if (n > 0) {
+      for (let i = 0; i < n; i++) {
+        state.world.step();
+        recordLive();
+      }
+      stepsSince += n;
+      draw();
+    }
+  } else {
+    clock.reset();
   }
   frames++;
   if (t - lastT > 500) {
     state.fps = Math.round((frames * 1000) / (t - lastT));
+    state.measuredRate = Math.round((stepsSince * 1000) / (t - lastT));
     frames = 0;
+    stepsSince = 0;
     lastT = t;
     updateReadout();
   }
   requestAnimationFrame(loop);
 }
 
+let lastLiveDraw = 0;
 function recordLive() {
   const s = state.world.stats();
   history_.push(s);
   if (history_.length > 600) history_.shift();
-  if (state.world.tick % 6 === 0) drawLive();
+  const now = performance.now();
+  if (now - lastLiveDraw > 250) {
+    lastLiveDraw = now;
+    drawLive();
+  }
 }
 
 // ---------------------------------------------------------------- readout + live chart
 function updateReadout() {
   const s = state.world.stats();
   $('#tick').textContent = s.tick.toLocaleString();
-  $('#fps').textContent = `${state.fps} fps × ${state.speed}`;
+  $('#fps').textContent = `${state.measuredRate} steps/s · ${state.fps} fps`;
   const kind = state.kind;
   const ro = $('#readout');
   if (kind === 'ecology') {
@@ -202,8 +230,8 @@ function syncControls() {
   document.querySelectorAll('.tabs button').forEach((b) => b.classList.toggle('active', b.dataset.kind === state.kind));
   $('#seed').value = state.seed;
   $('#play').textContent = state.running ? 'Pause' : 'Play';
-  $('#speed').value = state.speed;
-  $('#speed-v').textContent = `${state.speed}×`;
+  $('#speed').value = rateToSlider(state.rate);
+  $('#speed-v').textContent = `${state.rate} steps/s`;
   $('#life-opts').hidden = state.kind !== 'life';
   $('#elementary-opts').hidden = state.kind !== 'elementary';
   $('#life-rule').value = state.lifeRule;
@@ -243,8 +271,8 @@ $('#exposure').addEventListener('change', (e) => {
   draw();
 });
 $('#speed').addEventListener('input', (e) => {
-  state.speed = +e.target.value;
-  $('#speed-v').textContent = `${state.speed}×`;
+  state.rate = sliderToRate(+e.target.value);
+  $('#speed-v').textContent = `${state.rate} steps/s`;
 });
 $('#life-rule').addEventListener('change', (e) => {
   try {
@@ -274,6 +302,11 @@ window.addEventListener('keydown', (e) => {
     syncControls();
   } else if (e.key === 'n') $('#reseed').click();
   else if (e.key === '.') $('#step').click();
+  else if (e.key === '[' || e.key === ']') {
+    const v = rateToSlider(state.rate) + (e.key === ']' ? 8 : -8);
+    state.rate = sliderToRate(Math.max(0, Math.min(100, v)));
+    syncControls();
+  }
 });
 canvas.addEventListener('click', (ev) => {
   // click to poke the world: drop grazers / live cells / a seed cell
