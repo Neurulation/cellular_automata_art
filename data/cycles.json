@@ -34,7 +34,7 @@
     "title": "Slower still: a wider speed range and presets",
     "date": "2026-09-20",
     "issue": 9,
-    "pr": null,
+    "pr": 11,
     "summary": "Second round of the same feedback. The speed range now reaches down to 0.5 steps per second, the default drops to 6, and four presets name what each speed is for: watch one hunt, follow a lineage, see the cycles, evolve fast.",
     "learned": "GitHub Pages caches for ten minutes, so a person can look at a freshly deployed fix and see the old page. The build pill under the title exists for exactly this, but nobody knows to read it; the presets make the intended speed legible without it.",
     "next": "Time course of selection (#5, PR #8) resumes as cycle 4."

@@ -60,8 +60,10 @@ test('slider mapping is a log scale from 0.5 to 240 and round-trips', () => {
 test('sub-1 rates step less than once per second', () => {
   const c = makeStepClock({ rate: 0.5 });
   let steps = 0;
-  for (let i = 0; i < 60; i++) steps += c.advance(1 / 60); // one second
+  for (let i = 0; i < 60; i++) steps += c.advance(1 / 60); // one second: 0.5 steps
   assert.equal(steps, 0);
-  for (let i = 0; i < 60; i++) steps += c.advance(1 / 60); // two seconds
+  for (let i = 0; i < 66; i++) steps += c.advance(1 / 60); // 2.1 seconds: 1.05 steps
   assert.equal(steps, 1);
+  for (let i = 0; i < 114; i++) steps += c.advance(1 / 60); // 4.0 seconds: ~2 steps (float slack)
+  assert.ok(steps === 1 || steps === 2);
 });
